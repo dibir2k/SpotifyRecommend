@@ -65,7 +65,7 @@ def create_sp_oauth():
     sp_oauth = SpotifyOAuth(
         client_id="b1625933bc024e5aa12e7d262fbf6e46",
         client_secret="b130e9b709c841439515839d8010928c",
-        redirect_uri="http://127.0.0.1:5000/callback",
+        redirect_uri="http://localhost:5173/login",
         scope="user-read-recently-played user-top-read playlist-read-private playlist-modify-private user-read-private",
         cache_handler=cache_handler,
     )
@@ -125,23 +125,36 @@ def refresh_access_token():
 def index():
     return app.send_static_file("index.html")
 
-#Login route
-@app.route("/login")
-def login():
-    # if sp_oauth.validate_token(sp_oauth.get_cached_token()):
-    user_session = session.get("spotify_token")
-    if user_session:
-        print("spotify token: ", user_session)
-        encrypted_token = cipher.encrypt(user_session["access_token"].encode())
-        return jsonify({"Bearer":str(encrypted_token)}), 200
-            
+#Get auth url
+@app.route("/authurl")
+def auth_url():
     sp_oauth = create_sp_oauth()
     # Redirect to Spotify authorization page
     auth_url = sp_oauth.get_authorize_url()
 
     #return redirect(auth_url)
+    return jsonify({"AuthUrl" : auth_url}), 200
 
-    return jsonify({"url":auth_url}), 200
+
+
+#Login route
+@app.route("/login")
+def login():
+    sp_oauth = create_sp_oauth()
+    if request.args.get("code") or sp_oauth.validate_token(
+        sp_oauth.get_cached_token()
+    ):
+        _ = sp_oauth.get_access_token(request.args.get("code"))
+        user_session = session.get("spotify_token")
+    
+        print("spotify token: ", user_session)
+        encrypted_token = cipher.encrypt(user_session["access_token"].encode())
+        response = jsonify({"Bearer":str(encrypted_token)}), 200
+        return response
+    else:
+        return jsonify({"Error":"Failed to authenticate"}), 500
+            
+    
 
 
 # Logout route
@@ -161,69 +174,34 @@ def logout():
 # (and possibly a refresh token) with the OAuth2 provider (Spotify) using your application's client ID, client secret, and other necessary parameters.
 
 
-@app.route("/callback")
-def callback():
-    sp_oauth = create_sp_oauth()
-    if request.args.get("code") or sp_oauth.validate_token(
-        sp_oauth.get_cached_token()
-    ):
-        _ = sp_oauth.get_access_token(request.args.get("code"))
-        session.get("spotify_info")
-
-        print("\nsession[token_info] (callback) = ", session.get("spotify_token"), "\n")
-
-        return redirect(url_for("login"))
-        
-    return jsonify({"ERROR":"Could not get token"})
-
-# Callback route
 # @app.route("/callback")
 # def callback():
-#     # Extract authorization code from the request
-#     auth_code = request.args.get('code')
+#     sp_oauth = create_sp_oauth()
+#     if request.args.get("code") or sp_oauth.validate_token(
+#         sp_oauth.get_cached_token()
+#     ):
+#         _ = sp_oauth.get_access_token(request.args.get("code"))
+#         session.get("spotify_token")
 
-#     # Exchange authorization code for tokens
-#     token_url = 'https://accounts.spotify.com/api/token'
-#     token_data = {
-#         'grant_type': 'authorization_code',
-#         'code': auth_code,
-#         'redirect_uri': 'http://127.0.0.1:5000/callback',
-#         'client_id': 'b1625933bc024e5aa12e7d262fbf6e46',
-#         'client_secret': 'b130e9b709c841439515839d8010928c',
-#     }
-#     response = requests.post(token_url, data=token_data)
-#     token_info = response.json()
+#         print("\nsession[token_info] (callback) = ", session.get("spotify_token"), "\n")
 
-#     # Encrypt tokens
-#     encrypted_access_token = cipher.encrypt(token_info["access_token"].encode())
-#     encrypted_refresh_token = cipher.encrypt(token_info["refresh_token"].encode())
-
-#     # Store encrypted tokens in session
-#     session["token_info"] = {
-#         "access_token": encrypted_access_token,
-#         "refresh_token": encrypted_refresh_token,
-#         "expires_in": token_info["expires_in"],
-#     }
-
-#     print("\nsession[token_info] = ", session["token_info"], "\n")
-
-#     # Store encrypted tokens in database
-#     #    token = Token(access_token=encrypted_access_token, refresh_token=encrypted_refresh_token)
-#     #    db.session.add(token)
-#     #    db.session.commit()
-
-#     return redirect(REACT_HOMEPAGE_URL)
+#         return redirect(url_for("logged"))
+        
+#     return jsonify({"ERROR":"Could not get token"})
 
 
 @app.route("/logged")
 def logged():
-    is_session = "spotify_token" in session
-    response = make_response({"authenticated": is_session})
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Credentials", "true")
+    is_user_session = session.get("spotify_token") is not None
+
+    return jsonify({"Authenticated":is_user_session})
+    # is_session = "spotify_token" in session
+    # response = make_response({"authenticated": is_session})
+    # response.headers.add("Access-Control-Allow-Origin", "*")
+    # response.headers.add("Access-Control-Allow-Credentials", "true")
     
-    # User is authenticated, return authenticated status
-    return response, 200
+    # # User is authenticated, return authenticated status
+    # return response, 200
     
     # access_token = sp_oauth.get_cached_token()
     # print("\nsession[token_info] (logged) = ", session.get("spotify_token"), "\n")

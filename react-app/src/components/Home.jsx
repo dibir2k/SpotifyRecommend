@@ -22,7 +22,9 @@ const HomePage = () => {
             throw new Error('Failed to fetch logged status');
             }
             const data = await response.json();
-            setLogged(data.Authenticated);
+            if (data.Authenticated) {
+                setLogged(data.Authenticated);
+            }
             console.log(data);
         } catch (error) {
             console.error('Logged error:', error);
