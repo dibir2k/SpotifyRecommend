@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useState, useEffect} from 'react'
-
+import { Popup } from 'reactjs-popup';
 
 
 
@@ -21,7 +21,7 @@ const LoggedInLinks = () => {
                 <Link className="nav-link  active" to="/recently-played">Recently Played</Link>
             </li>
             <li className="nav-item">
-                <a className="nav-link active" href="#" onClick={()=>{logout()}}>Log Out</a>
+                <Link className="nav-link active" to="/logout" >Logout</Link>
             </li>
         </>
     )
@@ -29,6 +29,7 @@ const LoggedInLinks = () => {
 
 
 const LoggedOutLinks = () => {
+
     return (
         <>
             <li className="nav-item">
@@ -37,7 +38,6 @@ const LoggedOutLinks = () => {
             <li className="nav-item">
                 <Link className="nav-link active" to="/login" >Login</Link>
             </li>
-
         </>
     )
 }

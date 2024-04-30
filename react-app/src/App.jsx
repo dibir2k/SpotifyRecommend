@@ -14,6 +14,7 @@ import {
 } from 'react-router-dom'
 import HomePage from './components/Home';
 import LoginPage from './components/Login';
+import LogoutPage from './components/Logout';
 import MyPlaylistsPage from './components/MyPlaylists';
 import RecentlyPlayedPage from './components/RecentlyPlayed';
 import TopTracksPage from './components/TopTracks';
@@ -32,6 +33,7 @@ const App=()=>{
                 <Route path="/recently-played" element={<RecentlyPlayedPage/>}></Route>
 
                 <Route path="/login" element={<LoginPage/>}></Route>
+                <Route path="/logout" element={<LogoutPage/>}></Route>
                 <Route path="/" element={<HomePage />} />
 
             </Routes>
