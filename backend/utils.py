@@ -22,6 +22,8 @@ def clean_df(df):
     # Drop unnecessary columns
     features_df = df.drop(["artist_name", "year", "track_id", "track_name", "duration_ms", "key", "time_signature", "popularity"], axis=1)
 
+    all_genres_dict = features_df["genre"].value_counts().to_dict()
+    print("FEATURES DF GENRES COUNT CLEAN DF = ",len(all_genres_dict))
     # Use this function to search for any files which match your filename
     files_present = glob.glob("./features.csv")
 
@@ -45,6 +47,7 @@ def get_artist_genres(sp, artist_name):
 
 def get_main_genre(spotify_df, genres_list):
     all_genres_dict = spotify_df["genre"].value_counts().to_dict()
+    print("SPOTIFY GENRES COUNT = ",len(all_genres_dict))
     tracks_genres = []
     for genres in genres_list:
         if len(genres) == 0: 
@@ -61,6 +64,9 @@ def get_main_genre(spotify_df, genres_list):
                     current_count = new_count
 
         tracks_genres.append(champion_genre)
+    
+    print("SPOTIFY GENRES COUNT = ",len(all_genres_dict))
+    print("TRACKS_ GENRES = ", tracks_genres)
 
     return tracks_genres
 
@@ -220,6 +226,7 @@ def create_df_tracks(sp, tracks, genre):
 def get_features(track_df=None):
     df = pd.read_csv("./features.csv")
     df.drop(df.columns[0], axis=1, inplace=True)
+    print("IN GET FEATURES = ", len(df["genre"].unique()))
 
     df_columns = list(df.columns)
     track_df = track_df[list(df_columns)]
@@ -229,6 +236,8 @@ def get_features(track_df=None):
     total_df = total_df[~total_df.duplicated(keep='last')]
 
     total_df.to_csv("./features.csv")
+
+    print(len(total_df["genre"].unique()))
     
     #Encode genre in one-hot sense
     features_df = pd.get_dummies(total_df, columns=["genre"], dtype="int64").tail(len_track_df)
@@ -261,18 +270,51 @@ def qdrant_recommend(collection_name, features, payload, limit=50):
 
     size = info.vectors_count
 
-
-    ids = list(range(size, size + features.shape[0]))
     vectors = features.tolist()
 
-    client.upsert(
-        collection_name=collection_name,
-        points=models.Batch(
-            ids=ids,
-            vectors=vectors,
-            payloads=payload
+    print(f"/n/n******** /n/n vectors = {vectors} /n/n ******** /n/n")
+
+    vectors_to_push = []
+    payloads_to_push = []
+    ids = []
+    for i in range(len(payload)):
+        track_name = payload[i]["track_name"]
+        artist_name = payload[i]["artist_name"]
+        search = client.scroll(
+            collection_name=collection_name,
+            scroll_filter=models.Filter(
+            must=[
+                models.FieldCondition(key="track_name", match=models.MatchValue(value=track_name)),
+                models.FieldCondition(key="artist_name", match=models.MatchValue(value=artist_name)),
+            ]
+            ),
+            limit=1,
+            with_payload=True,
+            with_vectors=False,
+            )   
+        is_present = len(search[0]) != 0
+        if is_present:
+            ids.append(search[0][0].id)
+        else:
+            vectors_to_push.append(vectors[i])
+            payloads_to_push.append(payload[i])
+
+    
+    new_ids = list(range(size, size + len(vectors_to_push)))
+    if len(new_ids) > 0:
+        client.upsert(
+            collection_name=collection_name,
+            points=models.Batch(
+                ids=new_ids,
+                vectors=vectors_to_push,
+                payloads=payloads_to_push
+            )
         )
-    )
+
+
+    ids.extend(new_ids)
+
+    print(ids)
 
     recommendation_list = client.recommend(
         collection_name=collection_name,

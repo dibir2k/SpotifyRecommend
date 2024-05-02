@@ -286,13 +286,16 @@ const LoginPage = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
           });
-          const data = await response.json();
+          console.log(response);
+          if (response.ok) {
+            const data = await response.json();
 
-          // Assuming your backend responds with a token
-          const id = data.id;
+            // Assuming your backend responds with a token
+            const id = data.id;
 
-          // Store the token in localStorage or sessionStorage for future use
-          localStorage.setItem("id", id);
+            // Store the token in localStorage or sessionStorage for future use
+            localStorage.setItem("id", id);
+          }
 
           // Redirect to the desired page after successful login
           window.location.replace("http://localhost:5173");

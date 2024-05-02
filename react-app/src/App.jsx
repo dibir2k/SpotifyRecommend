@@ -18,6 +18,7 @@ import LogoutPage from './components/Logout';
 import MyPlaylistsPage from './components/MyPlaylists';
 import RecentlyPlayedPage from './components/RecentlyPlayed';
 import TopTracksPage from './components/TopTracks';
+import TracksPage from './components/Tracks';
 
 const App=()=>{
 
@@ -31,7 +32,7 @@ const App=()=>{
                 
                 <Route path="/top-tracks" element={<TopTracksPage/>}></Route>
                 <Route path="/recently-played" element={<RecentlyPlayedPage/>}></Route>
-
+                <Route path="/tracks" element={<TracksPage/>}></Route>
                 <Route path="/login" element={<LoginPage/>}></Route>
                 <Route path="/logout" element={<LogoutPage/>}></Route>
                 <Route path="/" element={<HomePage />} />

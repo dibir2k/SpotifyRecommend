@@ -9,8 +9,8 @@ const LogoutPage = () => {
                 headers: {
                   'Accept': 'application/json',
                   'Content-Type': 'application/json',
+                  'Authorization' : localStorage.getItem("id"),
                 },
-                body: JSON.stringify({ id: localStorage.getItem("id")}),
             });
             const data = await response.json();
             console.log(data);

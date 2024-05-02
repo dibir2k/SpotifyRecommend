@@ -23,6 +23,7 @@ import os
 import json
 from cryptography.fernet import Fernet
 import logging
+import base64
 
 import utils
 from config import AppConfig
@@ -87,10 +88,6 @@ class RedisCacheHandler(CacheHandler):
 
 r = redis.Redis()
 
-user_id = uuid4().hex
-print("USER ID = ", user_id)
-cache_handler = RedisCacheHandler(r, user_id)
-
 # Spotipy oauth
 def create_sp_oauth():
     sp_oauth = SpotifyOAuth(
@@ -98,7 +95,7 @@ def create_sp_oauth():
         client_secret="b130e9b709c841439515839d8010928c",
         redirect_uri="http://localhost:5173/login",
         scope="user-read-recently-played user-top-read playlist-read-private playlist-modify-private user-read-private",
-        cache_handler=cache_handler,
+        cache_handler=RedisCacheHandler(r)
     )
     return sp_oauth
 
@@ -111,29 +108,6 @@ sp_oauth = create_sp_oauth()
 #    refresh_token = db.Column(db.LargeBinary)
 
 
-# # Token refreshment function
-# def refresh_access_token():
-#     #sp_oauth = create_sp_oauth()
-#     token_info = session.get("spotify_token")
-#     if token_info:
-#         # Decrypt refresh token
-#         refresh_token = cipher.decrypt(token_info["refresh_token"]).decode()
-
-#         # Use refresh token to obtain new access token from Spotify
-#         new_token_info = sp_oauth.refresh_access_token(refresh_token)
-
-#         print("NEW: ", new_token_info)
-
-#         # Encrypt new access token
-#         encrypted_access_token = cipher.encrypt(new_token_info["access_token"].encode())
-
-#         # Update access token in session and database
-#         token_info["access_token"] = encrypted_access_token
-#         token_info["expires_in"] = new_token_info["expires_in"]
-
-#         session["token_info"] = token_info
-
-
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
@@ -141,33 +115,36 @@ def index():
 #Get auth url
 @app.route("/authurl")
 def auth_url():
-    #sp_oauth = create_sp_oauth()
     # Redirect to Spotify authorization page
     auth_url = sp_oauth.get_authorize_url()
 
     #return redirect(auth_url)
     return jsonify({"AuthUrl" : auth_url}), 200
 
-
-
 #Login route
 @app.route("/login", methods=["POST"])
 def login():
 
+    user_id = uuid4().hex
+    print("USER ID = ", user_id)
+
     if request.args.get("code"):
         code = request.args.get("code")
         print("code = ", code)
-        token_info = sp_oauth.cache_handler.get_cached_token()
-        print(token_info)
-        if token_info is None:  
-            token_info = sp_oauth.get_access_token(code, check_cache=True)
-            print("Access token: ", token_info)
-            sp_oauth.cache_handler.save_token_to_cache(token_info)
 
-        #session[user_id] = token_info
-        #encrypted_token = cipher.encrypt(token_info["access_token"].encode())
-        response = jsonify({"id" : user_id}), 200
-        return response
+        try:
+            cache_handler = RedisCacheHandler(r, user_id)
+            sp_oauth.cache_handler = cache_handler
+            token_info = sp_oauth.get_access_token(code, check_cache=True)
+        except:
+            print("\n\n ******** EXCEPTION OCCURRED ********\n\n")
+            return jsonify({"id":""}), 502
+        else:            
+            print("USER ID = ", user_id)
+            print("Access token: ", token_info)
+            response = jsonify({"id" : user_id}), 200
+            return response
+        
     else:
         return jsonify({"Error":"Failed to authenticate"}), 500
             
@@ -178,13 +155,11 @@ def login():
 @app.route("/logout", methods = ["POST"])
 def logout():
     # Clear cached token information from session
-    data = request.get_json()
-    if "id" in data:
-        id = data["id"]
-        print("\n\nID IS = ", id)
-        #session.pop(id)
-        r.delete(id)
-        print(r.keys())
+    id = request.headers.get('Authorization')
+    print("\n\nID IS (LOGOUT) = ", id)
+    #session.pop(id)
+    r.delete(id)
+    print(r.keys())
 
     # Clear token information from the database
     #    Token.query.delete()
@@ -197,32 +172,15 @@ def logout():
 # (and possibly a refresh token) with the OAuth2 provider (Spotify) using your application's client ID, client secret, and other necessary parameters.
 
 
-# @app.route("/callback")
-# def callback():
-#     sp_oauth = create_sp_oauth()
-#     if request.args.get("code") or sp_oauth.validate_token(
-#         sp_oauth.get_cached_token()
-#     ):
-#         _ = sp_oauth.get_access_token(request.args.get("code"))
-#         user_session = session.get("spotify_token")
-
-#         print("spotify token: ", user_session)
-#         # encrypted_token = cipher.encrypt(user_session["access_token"].encode())
-#         # response = jsonify({"Bearer":str(encrypted_token)}), 200
-#         return redirect(REACT_HOMEPAGE_URL)
-#     else:
-#         return jsonify({"Error":"Failed to authenticate"}), 500
-
-
 @app.route("/logged")
 def logged():
-    token_info = sp_oauth.cache_handler.get_cached_token() is not None
-    response = jsonify({"Authenticated":token_info}), 200
+    id = request.headers.get("Authorization")
+    response = jsonify({"Authenticated":r.exists(id)}), 200
     return response
     
 
 
-@app.route("/api/v1/recommendations/recently-played")
+@app.route("/recommendations/recently-played")
 def recently_played_recommendations():
     # Check if user is authenticated
     if 'token_info' not in session:
@@ -241,7 +199,7 @@ def recently_played_recommendations():
 
 
 
-@app.route("/api/v1/recommendations/top-tracks")
+@app.route("/recommendations/top-tracks")
 def top_tracks_recommendations():
     # Check if user is authenticated
     if 'token_info' not in session:
@@ -259,7 +217,7 @@ def top_tracks_recommendations():
     return recommended_json    
 
 
-@app.route("/api/v1/recommendations/my-playlists")
+@app.route("/recommendations/my-playlists")
 def my_playlists():
     # Check if user is authenticated
     if 'token_info' not in session:
@@ -287,7 +245,7 @@ def my_playlists():
 
 
 
-@app.route('/api/v1/recommendations/playlist/<playlist_id>')
+@app.route('/recommendations/playlist/<playlist_id>')
 def my_playlist_recommendations(playlist_id):
     # Check if user is authenticated
     if 'token_info' not in session:
@@ -310,53 +268,53 @@ def my_playlist_recommendations(playlist_id):
     return recommended_json
 
 
-@app.route('/api/v1/recommendations/track')
+@app.route('/recommendations/track', methods = ["POST"])
 def track_recommendations():
+    print("HELLO")
     # Check if user is authenticated
-    if 'token_info' not in session:
-        return redirect(url_for('login'))
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    print(type(token_info))
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
 
     # Decrypt tokens before using them
-    token_info = session['token_info']
-    decrypted_access_token = cipher.decrypt(token_info['access_token']).decode()
+    access_token = token_info['access_token']
 
-    track_name = request.args.get("name")
-    artist_name = request.args.get("artist")
-    
+    track_name = request.json.get("trackName")
+    artist_name = request.json.get("artistName")
+
     # Initialize Spotipy with the access token
-    sp = Spotify(auth=decrypted_access_token)
-    
-    if artist_name != None:
-        recommended_json = utils.recommended(sp, limit=50, mode="in", track_name=track_name, artist_name=artist_name)
-    else:
-        recommended_json = utils.recommended(sp, limit=50, mode="in", track_name=track_name)    
-    
-    return recommended_json
+    sp = Spotify(auth=access_token)
+    username = sp.current_user()["id"]
+
+    recommended_json = utils.recommended(sp, limit=50, mode="in", track_name=track_name, artist_name=artist_name)
+
+    return recommended_json, 200
 
 
-
-
-@app.route('/api/v1/recommendations/playlist')
+@app.route('/recommendations/playlist', methods = ["POST"])
 def playlist_recommendations():
     # Check if user is authenticated
-    if 'token_info' not in session:
-        return redirect(url_for('login'))
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = r.get(id).decode()
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
 
     # Decrypt tokens before using them
-    token_info = session['token_info']
-    decrypted_access_token = cipher.decrypt(token_info['access_token']).decode()
+    access_token = token_info['access_token']
 
-    playlist_url = request.args.get("url")
-    
+    playlist_url = request.json.get("url")
+
     # Initialize Spotipy with the access token
-    sp = Spotify(auth=decrypted_access_token)
+    sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
     recommended_json = utils.recommended(sp, limit=20, mode="in", track_name=playlist_url, username=username)
 
-    
-    return recommended_json
-
+    return recommended_json, 200
 
 
 if __name__ == "__main__":
