@@ -23,7 +23,6 @@ def clean_df(df):
     features_df = df.drop(["artist_name", "year", "track_id", "track_name", "duration_ms", "key", "time_signature", "popularity"], axis=1)
 
     all_genres_dict = features_df["genre"].value_counts().to_dict()
-    print("FEATURES DF GENRES COUNT CLEAN DF = ",len(all_genres_dict))
     # Use this function to search for any files which match your filename
     files_present = glob.glob("./features.csv")
 
@@ -47,7 +46,6 @@ def get_artist_genres(sp, artist_name):
 
 def get_main_genre(spotify_df, genres_list):
     all_genres_dict = spotify_df["genre"].value_counts().to_dict()
-    print("SPOTIFY GENRES COUNT = ",len(all_genres_dict))
     tracks_genres = []
     for genres in genres_list:
         if len(genres) == 0: 
@@ -65,9 +63,6 @@ def get_main_genre(spotify_df, genres_list):
 
         tracks_genres.append(champion_genre)
     
-    print("SPOTIFY GENRES COUNT = ",len(all_genres_dict))
-    print("TRACKS_ GENRES = ", tracks_genres)
-
     return tracks_genres
 
 
@@ -128,8 +123,22 @@ def get_top_tracks(sp):
     return uris, genres, payload
     #else:
     #    print("Can't get token for")
-        
+def get_top_tracks_list(sp):    
+    payload = []
+    #if token:
+    results = sp.current_user_top_tracks(limit=25)
+    top_tracks_items = results['items']
+    while results['next']:
+        results = sp.next(results)
+        top_tracks_items.extend(results['items'])
+    for item in results['items']:
+        artist_name = item['artists'][0]['name']
+        track_name = item['name']
+        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
+    
+    print(payload)
 
+    return payload
 # Get tracks uris in a playlist
 
 def get_playlist_tracks(sp, username, playlist_id):
@@ -226,7 +235,6 @@ def create_df_tracks(sp, tracks, genre):
 def get_features(track_df=None):
     df = pd.read_csv("./features.csv")
     df.drop(df.columns[0], axis=1, inplace=True)
-    print("IN GET FEATURES = ", len(df["genre"].unique()))
 
     df_columns = list(df.columns)
     track_df = track_df[list(df_columns)]
@@ -236,15 +244,11 @@ def get_features(track_df=None):
     total_df = total_df[~total_df.duplicated(keep='last')]
 
     total_df.to_csv("./features.csv")
-
-    print(len(total_df["genre"].unique()))
     
     #Encode genre in one-hot sense
     features_df = pd.get_dummies(total_df, columns=["genre"], dtype="int64").tail(len_track_df)
 
     features_df = features_df.drop(['genre_none'], axis=1, errors='ignore')
-
-    print(features_df.shape[1])
 
     for col in df.columns:
         if df[col].dtype == "float64":
@@ -271,8 +275,6 @@ def qdrant_recommend(collection_name, features, payload, limit=50):
     size = info.vectors_count
 
     vectors = features.tolist()
-
-    print(f"/n/n******** /n/n vectors = {vectors} /n/n ******** /n/n")
 
     vectors_to_push = []
     payloads_to_push = []
@@ -327,12 +329,12 @@ def qdrant_recommend(collection_name, features, payload, limit=50):
     for result in recommendation_list:
         results.append(result.payload)
 
-    return json.dumps(results, indent=2)
+    return results
 
 
 
 
-def recommended(sp, limit=20, mode = "rp", track_name=None, artist_name=None, username=None):
+def recommended(sp, limit=200, mode = "rp", track_name=None, artist_name=None, username=None):
     st = time.time()
 
     spotify_df = read_df()

@@ -183,52 +183,78 @@ def logged():
 @app.route("/recommendations/recently-played")
 def recently_played_recommendations():
     # Check if user is authenticated
-    if 'token_info' not in session:
-        return redirect(url_for('login'))
-    
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
     # Decrypt tokens before using them
-    token_info = session.get("spotify_info")
-    decrypted_access_token = cipher.decrypt(token_info['access_token']).decode()
+    access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
-    sp = Spotify(auth=decrypted_access_token)
+    sp = Spotify(auth=access_token)
 
     # Fetch recently played tracks
-    recommended_json = utils.recommended(sp, 50, mode="rp")
+    recommended_json = jsonify(utils.recommended(sp, 50, mode="rp"))
     return recommended_json
 
+@app.route("/recommendations/top-tracks-list")
+def top_tracks_list():
+    print("HERE")
+    # Check if user is authenticated
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
+    # Decrypt tokens before using them
+    access_token = token_info['access_token']
+
+    # Initialize Spotipy with the access token
+    sp = Spotify(auth=access_token)
+
+    # Fetch recently played tracks
+    tt_json = jsonify(utils.get_top_tracks_list(sp))
+    
+    return tt_json
 
 
 @app.route("/recommendations/top-tracks")
 def top_tracks_recommendations():
     # Check if user is authenticated
-    if 'token_info' not in session:
-        return redirect(url_for('login'))
-    
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
     # Decrypt tokens before using them
-    token_info = session['token_info']
-    decrypted_access_token = cipher.decrypt(token_info['access_token']).decode()
+    access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
-    sp = Spotify(auth=decrypted_access_token)
+    sp = Spotify(auth=access_token)
 
     # Fetch recently played tracks
-    recommended_json = utils.recommended(sp, 50, mode="tt")
+    recommended_json = jsonify(utils.recommended(sp, 50, mode="tt"))
     return recommended_json    
 
 
 @app.route("/recommendations/my-playlists")
 def my_playlists():
     # Check if user is authenticated
-    if 'token_info' not in session:
-        return redirect(url_for('login'))
-    
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
     # Decrypt tokens before using them
-    token_info = session['token_info']
-    decrypted_access_token = cipher.decrypt(token_info['access_token']).decode()
+    access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
-    sp = Spotify(auth=decrypted_access_token)
+    sp = Spotify(auth=access_token)
 
     # Fetch recently played tracks
     user_playlists = sp.current_user_playlists(limit = 50, offset=0)
@@ -241,26 +267,28 @@ def my_playlists():
         playlist_image_url = playlist['images'][-1]['url'] if playlist['images'] else ''  # Get the first image URL if available
         playlist_items.append(dict(zip(keys, [playlist_id, playlist_name, playlist_image_url])))
 
-    return json.dumps(playlist_items)
+    return jsonify(playlist_items)
 
 
 
 @app.route('/recommendations/playlist/<playlist_id>')
 def my_playlist_recommendations(playlist_id):
     # Check if user is authenticated
-    if 'token_info' not in session:
-        return redirect(url_for('login'))
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
 
     # Decrypt tokens before using them
-    token_info = session['token_info']
-    decrypted_access_token = cipher.decrypt(token_info['access_token']).decode()
+    access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
-    sp = Spotify(auth=decrypted_access_token)
+    sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
     # Fetch tracks from the selected playlist
-    recommended_json = utils.recommended(sp, limit=50, mode="in", track_name=playlist_id, username=username)
+    recommended_json = jsonify(utils.recommended(sp, limit=50, mode="in", track_name=playlist_id, username=username))
 
     # Process the tracks and get suggestions for similar tracks
     # You can implement this part using Spotipy's recommendation endpoints
@@ -270,12 +298,10 @@ def my_playlist_recommendations(playlist_id):
 
 @app.route('/recommendations/track', methods = ["POST"])
 def track_recommendations():
-    print("HELLO")
     # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
-    print(type(token_info))
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
 
@@ -289,7 +315,7 @@ def track_recommendations():
     sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
-    recommended_json = utils.recommended(sp, limit=50, mode="in", track_name=track_name, artist_name=artist_name)
+    recommended_json = jsonify(utils.recommended(sp, limit=200, mode="in", track_name=track_name, artist_name=artist_name))
 
     return recommended_json, 200
 
@@ -299,7 +325,7 @@ def playlist_recommendations():
     # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
-    token_info = r.get(id).decode()
+    token_info = json.loads(r.get(id).decode('utf-8'))
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
 
@@ -312,7 +338,7 @@ def playlist_recommendations():
     sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
-    recommended_json = utils.recommended(sp, limit=20, mode="in", track_name=playlist_url, username=username)
+    recommended_json = jsonify(utils.recommended(sp, limit=20, mode="in", track_name=playlist_url, username=username))
 
     return recommended_json, 200
 
