@@ -78,18 +78,29 @@ def get_track_uri(sp, track_name, artist_name):
         return track_uri, artist_genre
     else:
         return None
-    
+
+
+def get_recently_played_list(sp):
+    payload = []
+    #if token:
+    results = sp.current_user_recently_played(limit = 50)
+    recently_items = results['items']
+
+    for item in recently_items:
+        uri = item['track']['uri']
+        artist_name = item['track']['artists'][0]['name']
+        track_name = item['track']['name']
+        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": uri})
+
+    return payload
 
 def get_recently_played(sp):
     uris = []
     genres = []
     payload = []
     #if token:
-    results = sp.current_user_recently_played()
+    results = sp.current_user_recently_played(limit = 25)
     recently_items = results['items']
-    while results['next']:
-        results = sp.next(results)
-        recently_items.extend(results['items'])
 
     for item in recently_items:
         uri = item['track']['uri']
@@ -103,6 +114,20 @@ def get_recently_played(sp):
     return uris, genres, payload
     #else:
     #    print("Can't get token")
+
+def get_top_tracks_list(sp):
+    payload = []
+
+    results = sp.current_user_top_tracks(limit=50)
+    top_tracks_items = results['items']
+    results = sp.next(results)
+    top_tracks_items.extend(results['items'])
+    for item in top_tracks_items:
+        artist_name = item['artists'][0]['name']
+        track_name = item['name']
+        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
+    
+    return payload
 
 def get_top_tracks(sp):
     uris = []
@@ -121,19 +146,7 @@ def get_top_tracks(sp):
     return uris, genres, payload
     #else:
     #    print("Can't get token for")
-def get_top_tracks_list(sp):
-    payload = []
 
-    results = sp.current_user_top_tracks(limit=50)
-    top_tracks_items = results['items']
-    results = sp.next(results)
-    top_tracks_items.extend(results['items'])
-    for item in top_tracks_items:
-        artist_name = item['artists'][0]['name']
-        track_name = item['name']
-        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
-    
-    return payload
 # Get tracks uris in a playlist
 
 def get_playlist_tracks(sp, username, playlist_id):

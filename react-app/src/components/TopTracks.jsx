@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useEffect } from "react";
 import ListOfTracks from "../utils";
 import Button from 'react-bootstrap/Button';
-import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "@uidotdev/usehooks";
 
 const TopTracksPage = () => {
@@ -10,7 +9,7 @@ const TopTracksPage = () => {
     const [trackData, saveTrackData] = useLocalStorage("topTrackData", []);
     const [error, setError] = useState(null);
     const [buttonClicked, setButtonClicked] = useState(false);
-    const navigate = useNavigate();
+    const [buttonText, setButtonText] = useState("Recommendations");
     const id = localStorage.getItem("id");
     console.log(id)
     useEffect(() => {
@@ -64,10 +63,14 @@ const TopTracksPage = () => {
             setError('Failed. Please try again.');
           }
         };
-        fetchTrackData();
+        if (trackData == null || trackData.length == 0) {fetchTrackData()}
       }, []);
 
-    const handleClick = () => setButtonClicked(true);
+    const handleClick = () => {
+        setButtonClicked(!buttonClicked);
+        setButtonText("Top Tracks");
+        console.log(buttonClicked);
+    }
     if (topTracks == null) {
         return (
             <div>Getting your top tracks...</div>
@@ -77,11 +80,11 @@ const TopTracksPage = () => {
         return ( 
             <div>
                 <Button 
-                    onClick={() => trackData.length > 0 ? handleClick : null}
+                    onClick={trackData.length > 0 ? handleClick : null}
                     variant="success" 
                     size="lg" 
                     disabled={trackData == null || trackData.length == 0}
-                    > Recommendations
+                    > {buttonText}
                 </Button>
                 {!buttonClicked ? <ListOfTracks tracks={topTracks} /> : <ListOfTracks tracks={trackData} />}
             </div> 

@@ -101,12 +101,6 @@ def create_sp_oauth():
 
 sp_oauth = create_sp_oauth()
 
-# Define Token model
-# class Token(db.Model):
-#    id = db.Column(db.Integer, primary_key=True)
-#    access_token = db.Column(db.LargeBinary)
-#    refresh_token = db.Column(db.LargeBinary)
-
 
 @app.route("/")
 def index():
@@ -168,16 +162,55 @@ def logout():
     return jsonify({"Status":"OK"}), 200
 
 
-# callback() function is responsible for handling this redirect. It extracts the authorization code from the URL and exchanges it for an access token
-# (and possibly a refresh token) with the OAuth2 provider (Spotify) using your application's client ID, client secret, and other necessary parameters.
-
-
 @app.route("/logged")
 def logged():
     id = request.headers.get("Authorization")
     response = jsonify({"Authenticated":r.exists(id)}), 200
     return response
+
+
+def verify_request():
+    # Check if user is authenticated
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
     
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
+
+    access_token = token_info['access_token']
+
+    return access_token
+    
+@app.route("/recommendations/recently-played-list")
+def recently_played_list():
+    # Check if user is authenticated
+    headers = request.headers
+    id = headers.get("Authorization")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
+
+    access_token = token_info['access_token']
+
+    # Initialize Spotipy with the access token
+    sp = Spotify(auth=access_token)
+
+    # Fetch recently played tracks
+    rp_json = jsonify(utils.get_recently_played_list(sp))
+
+    return rp_json
 
 
 @app.route("/recommendations/recently-played")
