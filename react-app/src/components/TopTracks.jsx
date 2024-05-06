@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import ListOfTracks from "../utils";
 import Button from 'react-bootstrap/Button';
 import { useNavigate } from "react-router-dom";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 const TopTracksPage = () => {
     const [topTracks, setTopTracks] = useState(null);
-    const [trackData, setTrackData] = useState(null);
+    const [trackData, saveTrackData] = useLocalStorage("topTrackData", []);
     const [error, setError] = useState(null);
-    const [buttonClicked, setButtonClicked] = useState(null);
+    const [buttonClicked, setButtonClicked] = useState(false);
     const navigate = useNavigate();
     const id = localStorage.getItem("id");
     console.log(id)
@@ -55,9 +56,9 @@ const TopTracksPage = () => {
               throw new Error('Failed to fetch suggestions for top tracks');
             }
             const data = await response.json();
+            console.log(data);
             if (data) {
-              setTrackData(data);
-              localStorage.setItem("topTracksData", data);
+              saveTrackData(data);
             }
           } catch (error) {
             setError('Failed. Please try again.');
@@ -67,18 +68,25 @@ const TopTracksPage = () => {
       }, []);
 
     const handleClick = () => setButtonClicked(true);
-    return ( 
-        <div>
-            <Button 
-                onClick={() => trackData !== null ? handleClick : null}
-                variant="success" 
-                size="lg" 
-                disabled = {trackData == null}>
-                Recommendations
-            </Button>
-            {topTracks !== null && !buttonClicked ? <ListOfTracks tracks={topTracks} /> : <ListOfTracks tracks={trackData} />}
-        </div> 
-        );
+    if (topTracks == null) {
+        return (
+            <div>Getting your top tracks...</div>
+        )
+    }
+    else {
+        return ( 
+            <div>
+                <Button 
+                    onClick={() => trackData.length > 0 ? handleClick : null}
+                    variant="success" 
+                    size="lg" 
+                    disabled={trackData == null || trackData.length == 0}
+                    > Recommendations
+                </Button>
+                {!buttonClicked ? <ListOfTracks tracks={topTracks} /> : <ListOfTracks tracks={trackData} />}
+            </div> 
+            );
+    }
 }
 
 export default TopTracksPage

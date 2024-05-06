@@ -186,8 +186,14 @@ def recently_played_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+    
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']
@@ -201,13 +207,18 @@ def recently_played_recommendations():
 
 @app.route("/recommendations/top-tracks-list")
 def top_tracks_list():
-    print("HERE")
     # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+    
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']
@@ -217,7 +228,7 @@ def top_tracks_list():
 
     # Fetch recently played tracks
     tt_json = jsonify(utils.get_top_tracks_list(sp))
-    
+
     return tt_json
 
 
@@ -227,8 +238,14 @@ def top_tracks_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+    
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']
@@ -247,8 +264,14 @@ def my_playlists():
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+    
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']
@@ -277,8 +300,14 @@ def my_playlist_recommendations(playlist_id):
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+    
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']
@@ -302,8 +331,14 @@ def track_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+    
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']
@@ -326,8 +361,14 @@ def playlist_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
+
     if not token_info:
         return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
 
     # Decrypt tokens before using them
     access_token = token_info['access_token']

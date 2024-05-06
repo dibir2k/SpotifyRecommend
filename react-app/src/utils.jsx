@@ -29,7 +29,7 @@ export default function ListOfTracks({tracks}) {
 
     return (
     <div className='fluid container'>
-      <div className='mb-2 fw-50'>Tracks</div>
+      <div className='mb-2 fw-50'></div>
       <input
         style={{ width: "200px" }}
         className='form-control mb-2'

@@ -4,6 +4,7 @@ from qdrant_client import QdrantClient, models
 import json
 import os
 import glob
+import requests
 
 DIR = os.getcwd()
 
@@ -107,13 +108,10 @@ def get_top_tracks(sp):
     uris = []
     genres = []
     payload = []
-    #if token:
-    results = sp.current_user_top_tracks()
+    
+    results = sp.current_user_top_tracks(limit=25)
     top_tracks_items = results['items']
-    while results['next']:
-        results = sp.next(results)
-        top_tracks_items.extend(results['items'])
-    for item in results['items']:
+    for item in top_tracks_items:
         uris.append(item['uri'])
         artist_name = item['artists'][0]['name']
         track_name = item['name']
@@ -123,21 +121,18 @@ def get_top_tracks(sp):
     return uris, genres, payload
     #else:
     #    print("Can't get token for")
-def get_top_tracks_list(sp):    
+def get_top_tracks_list(sp):
     payload = []
-    #if token:
-    results = sp.current_user_top_tracks(limit=25)
+
+    results = sp.current_user_top_tracks(limit=50)
     top_tracks_items = results['items']
-    while results['next']:
-        results = sp.next(results)
-        top_tracks_items.extend(results['items'])
-    for item in results['items']:
+    results = sp.next(results)
+    top_tracks_items.extend(results['items'])
+    for item in top_tracks_items:
         artist_name = item['artists'][0]['name']
         track_name = item['name']
         payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
     
-    print(payload)
-
     return payload
 # Get tracks uris in a playlist
 
@@ -268,7 +263,7 @@ import time
 
 def qdrant_recommend(collection_name, features, payload, limit=50):
 
-    client = QdrantClient("localhost", port=6333)
+    client = QdrantClient("localhost", port=6333, timeout=10)
 
     info = client.get_collection(collection_name=collection_name)
 
@@ -315,8 +310,6 @@ def qdrant_recommend(collection_name, features, payload, limit=50):
 
 
     ids.extend(new_ids)
-
-    print(ids)
 
     recommendation_list = client.recommend(
         collection_name=collection_name,
