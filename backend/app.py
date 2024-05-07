@@ -315,12 +315,13 @@ def my_playlists():
     # Fetch recently played tracks
     user_playlists = sp.current_user_playlists(limit = 50, offset=0)
     
+    print("** HEY **")
     playlist_items = []
     keys = ["playlist_id", "playlist_name", "image_url"]
     for playlist in user_playlists['items']:
         playlist_id = playlist['id']
         playlist_name = playlist['name']
-        playlist_image_url = playlist['images'][-1]['url'] if playlist['images'] else ''  # Get the first image URL if available
+        playlist_image_url = playlist['images'][0]['url'] if playlist['images'] else ''  # Get the first image URL if available
         playlist_items.append(dict(zip(keys, [playlist_id, playlist_name, playlist_image_url])))
 
     return jsonify(playlist_items)

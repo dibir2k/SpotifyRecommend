@@ -134,7 +134,7 @@ const HomePage = () => {
     fetchLoggedStatus();
   });
   return (
-    <div>
+    <div className='container'>
       {logged ? <LoggedInHome /> : <LoggedOutHome />}
     </div>
   )

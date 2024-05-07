@@ -7,11 +7,10 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 const RecentlyPlayedPage = () => {
     const [rpTracks, setRpTracks] = useState(null);
     const [trackData, saveTrackData] = useLocalStorage("rpTrackData", []);
-    const [error, setError] = useState(null);
     const [buttonClicked, setButtonClicked] = useState(false);
     const [buttonText, setButtonText] = useState("Recommendations");
     const id = localStorage.getItem("id");
-    console.log(id)
+
     useEffect(() => {
         const fetchRpTracks = async () => {
           try {
@@ -34,7 +33,7 @@ const RecentlyPlayedPage = () => {
               // localStorage.setItem("id", data.id);
             }
           } catch (error) {
-            setError('Failed. Please try again.');
+            console.log(error);
           }
         };
         fetchRpTracks();
@@ -60,7 +59,7 @@ const RecentlyPlayedPage = () => {
               saveTrackData(data);
             }
           } catch (error) {
-            setError('Failed. Please try again.');
+            console.log(error);
           }
         };
         if (trackData == null || trackData.length == 0) {fetchRpTrackData()}
