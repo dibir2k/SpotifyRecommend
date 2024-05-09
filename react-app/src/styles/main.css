@@ -2,6 +2,11 @@
     margin-top: 50px;
 }
 
+.form-container {
+    width: 500px; /* Adjust the width as needed */
+    margin: 0 auto; /* Center the form horizontally */
+  }
+
 form {
     max-width: 800px;
     margin: 0 auto;
@@ -16,12 +21,12 @@ margin: 0 auto;
 p {
     color: #bf1650;
   }
-  
+
   p::before {
     display: inline;
     content: "⚠ ";
   }
-  
+
   input {
     display: block;
     box-sizing: border-box;
@@ -32,7 +37,7 @@ p {
     margin-bottom: 10px;
     font-size: 14px;
   }
-  
+
   label {
     line-height: 2;
     text-align: left;
@@ -43,7 +48,7 @@ p {
     font-size: 16px;
     font-weight: 400;
   }
-  
+
   button[type="submit"],
   input[type="submit"] {
     background: #1DB954;
@@ -56,12 +61,12 @@ p {
     font-weight: bold;
     letter-spacing: 10px;
   }
-  
+
   button[type="submit"]:hover,
   input[type="submit"]:hover {
     background: #15803b;
   }
-  
+
   button[type="submit"]:active,
   input[type="button"]:active,
   input[type="submit"]:active {
@@ -70,11 +75,11 @@ p {
     border: 1px solid transparent;
     opacity: 0.8;
   }
-  
+
   input:disabled {
     opacity: 0.4;
   }
-  
+
   input[type="button"]:hover {
     transition: 0.3s all;
   }
@@ -82,9 +87,208 @@ p {
 .navbar-custom {
     background-color: #1DB954;
 }
+
+
+/* tr {
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    border-collapse: collapse;
+} */
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Set the width to the container width */
+  height: 200px; /* Set the height to desired height */
+  padding-bottom: 30px;
+}
+
+.image-container img {
+  max-width: 100%; /* Ensure the image doesn't exceed the container width */
+  max-height: 100%; /* Ensure the image doesn't exceed the container height */
+  display: block; /* Prevent extra space below the image */
+  margin: auto; /* Center the image horizontally */
+}
+
+#table {
+    background-color: #0e101c; /* Change to your desired background color */
+    color: #d0ddcb; /* Change to your desired text color */
+    width: 100%;
   
+}
+
+  /* Define CSS rules for table header cells */
+#table > tbody > tr {
+    background-color: #1f211f;
+    border-top-width: 0.5px;
+    border-color: #88a37c99;
+    color: #d0ddcb;
+    margin: 50px;
+  }
+
+  #table > tbody > tr:hover {
+    background-color: #15803b; /* Change to your desired data text color */
+  }
+
+  #table > tbody > th {
+    border-top-width: 0.5px;
+    border-color: #1f211f; /* Change to your desired data text color */
+  }
   /* button[type="submit"],
   input[type="button"],
   input[type="submit"] {
     -webkit-appearance: none;
   } */
+
+  .button-sug {
+    background: #1DB954;
+    color: rgb(13, 13, 13);
+    text-transform: uppercase;
+    border: none;
+    margin-top: 80px;
+    margin-bottom: 40px;
+    border-radius: 30px;
+    padding: 15px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 5px;
+
+  }
+
+.button-sug:hover {
+    background: #15803b;
+  }
+
+button:disabled,
+button[disabled]{
+  background: #093819;;
+}
+
+.custom-container {
+    max-width: 100%;
+    min-width: 90%;
+    width: 90%;
+}
+
+
+.results {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  width: 100%;
+}
+
+li {
+  padding: 5px;
+  /* width: 100%; */
+}
+
+.track-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  color: #fff;
+}
+
+.track-info:hover {
+  background-color: #15803b;
+  filter: brightness(135%);
+  cursor: default;
+}
+
+.track-info:hover span {
+  color: #fff !important;
+}
+
+.art {
+  width: 64px;
+}
+
+.art img {
+  width: 64px;
+  height: 64px;
+}
+
+.name {
+  font-size: 0.8rem;
+  width: 60%;
+  margin-left: 1rem;
+}
+
+.track-details {
+  font-size: 0.8rem;
+  width: 60%;
+  margin-left: 1rem;
+}
+
+.track-details span {
+  color: #b3b3b3;
+  padding-top: 5px;
+  font-size: 0.65rem;
+  display: block;
+}
+
+.track-details .album {
+  font-size: 0.6rem;
+}
+
+@media (min-width: 760px) {
+  .name {
+    font-size: 0.9rem;
+  }
+
+  .name span {
+    font-size: 0.7rem;
+  }
+}
+
+@media (min-width: 1260px) {
+  .name {
+    font-size: 1rem;
+  }
+
+  .name span {
+    font-size: 0.8rem;
+  }
+}
+
+.duration {
+  width: 9%;
+  align-self: center;
+  justify-self: flex-start;
+}
+
+.duration span {
+  color: #b3b3b3;
+  text-align: left;
+  font-size: 0.7rem;
+}
+
+@media (min-width: 760px) {
+  .duration span {
+    font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 1260px) {
+  .duration span {
+    font-size: 0.9rem;
+  }
+}
+

@@ -65,6 +65,7 @@ const LoggedInHome = () => {
   }
 
   return (
+    <div className='form-container'>
     <form 
         onSubmit={handleSubmit(onSubmit)} 
     >
@@ -85,14 +86,19 @@ const LoggedInHome = () => {
       </div>
       <input type="submit" />
     </form>
+    </div>
   );
 }
 
 const LoggedOutHome = () => {
   return (
-    <div className="home container">
-      <h1 className="heading">Welcome to my Spotify Recommendation app</h1>
-      <Link to='/login' className="btn btn-primary btn-lg">Log in to Spotify</Link>
+    <div className='home'>
+    <div className="image-container">
+       <img src="/imgs/Spotify_Logo.png" alt="Spotify Logo"></img>
+    </div>
+    <div> 
+      <Link to='/login' className="button-sug">Log in</Link>
+    </div>
     </div>
   )
 }

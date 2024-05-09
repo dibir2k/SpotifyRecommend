@@ -68,7 +68,8 @@ const TopTracksPage = () => {
 
     const handleClick = () => {
         setButtonClicked(!buttonClicked);
-        setButtonText("Top Tracks");
+        if (buttonText == "Recommendations") setButtonText("Top Tracks");
+        else setButtonText("Recommendations");
         console.log(buttonClicked);
     }
     if (topTracks == null) {
@@ -78,14 +79,14 @@ const TopTracksPage = () => {
     }
     else {
         return ( 
-            <div>
-                <Button 
+            <div >
+                <button className="button-sug"
                     onClick={trackData.length > 0 ? handleClick : null}
-                    variant="success" 
+                    //variant="success" 
                     size="lg" 
                     disabled={trackData == null || trackData.length == 0}
                     > {buttonText}
-                </Button>
+                </button>
                 {!buttonClicked ? <ListOfTracks tracks={topTracks} /> : <ListOfTracks tracks={trackData} />}
             </div> 
             );

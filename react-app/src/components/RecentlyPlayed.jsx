@@ -30,6 +30,7 @@ const RecentlyPlayedPage = () => {
             console.log(data);
             if (data) {
               setRpTracks(data);
+              console.log(data);
               // localStorage.setItem("id", data.id);
             }
           } catch (error) {
@@ -67,7 +68,8 @@ const RecentlyPlayedPage = () => {
 
     const handleClick = () => {
         setButtonClicked(!buttonClicked);
-        setButtonText("Recently Played");
+        if (buttonText == "Recommendations") setButtonText("Recently Played");
+        else setButtonText("Recommendations");
         console.log(buttonClicked);
     }
     if (rpTracks == null) {
@@ -78,13 +80,13 @@ const RecentlyPlayedPage = () => {
     else {
         return ( 
             <div>
-                <Button 
+                <button className="button-sug"
                     onClick={trackData.length > 0 ? handleClick : null}
-                    variant="success" 
+                    // variant="success" 
                     size="lg" 
                     disabled={trackData == null || trackData.length == 0}
                     > {buttonText}
-                </Button>
+                </button>
                 {!buttonClicked ? <ListOfTracks tracks={rpTracks} /> : <ListOfTracks tracks={trackData} />}
             </div> 
             );

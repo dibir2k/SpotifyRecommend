@@ -92,6 +92,14 @@ def get_recently_played_list(sp):
         track_name = item['track']['name']
         payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": uri})
 
+    track_ids = [pld["track_id"] for pld in payload]
+    images_url, albums_name, durations = get_album_images(sp, track_ids)
+
+    for i, pld in enumerate(payload):
+        pld["image"] = images_url[i]
+        pld["album_name"] = albums_name[i]
+        pld["duration"] = durations[i]
+
     return payload
 
 def get_recently_played(sp):
@@ -126,7 +134,15 @@ def get_top_tracks_list(sp):
         artist_name = item['artists'][0]['name']
         track_name = item['name']
         payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
-    
+
+    track_ids = [pld["track_id"] for pld in payload]
+    images_url, albums_name, durations = get_album_images(sp, track_ids)
+
+    for i, pld in enumerate(payload):
+        pld["image"] = images_url[i]
+        pld["album_name"] = albums_name[i]
+        pld["duration"] = durations[i]
+
     return payload
 
 def get_top_tracks(sp):
@@ -265,16 +281,41 @@ def get_features(track_df=None):
 
     return features_df.to_numpy()
 
+def ms_to_string(duration_ms):
+    millis = int(duration_ms)
+    seconds=(millis/1000)%60
+    seconds = int(seconds)
+    minutes=(millis/(1000*60))%60
+    minutes = int(minutes)
 
-def get_album_image(sp, track_id):
-    image_url = sp.track(track_id)["album"]["images"][2]["url"]
+    if seconds <= 9: return f"{minutes}:0{seconds}"
+    else: return f"{minutes}:{seconds}"
 
-    return image_url
+def get_album_images(sp, track_ids):
+    images_url = []
+    albums_name = []
+    durations = []
+    n_tracks = len(track_ids)
+    print(n_tracks)
+    for i in range(0, n_tracks, 50):
+        print(i)
+        left_limit = i
+        right_limit = min(i + 50, n_tracks)
+        print(left_limit)
+        print(right_limit)
+        tracks = sp.tracks(track_ids[left_limit:right_limit])["tracks"]
+        for track in tracks:
+            images_url.append(track["album"]["images"][2]["url"])
+            albums_name.append(track["album"]["name"]) 
+            duration = track["duration_ms"]
+            durations.append(ms_to_string(duration))
+
+    return images_url, albums_name, durations
 
 
 import time
 
-def qdrant_recommend(collection_name, features, payload, limit=50):
+def qdrant_recommend(sp, collection_name, features, payload, limit=50):
 
     client = QdrantClient("localhost", port=6333, timeout=10)
 
@@ -335,6 +376,16 @@ def qdrant_recommend(collection_name, features, payload, limit=50):
     for result in recommendation_list:
         results.append(result.payload)
 
+    track_ids = [pld["track_id"] for pld in results]
+
+    images_url, albums_name, durations = get_album_images(sp, track_ids)
+
+
+    for i, result in enumerate(results):
+        result["image"] = images_url[i]
+        result["album_name"] = albums_name[i]
+        result["duration"] = durations[i]
+
     return results
 
 
@@ -362,7 +413,7 @@ def recommended(sp, limit=200, mode = "rp", track_name=None, artist_name=None, u
 
     tracks_features = get_features(df_tracks)
 
-    json_recommend = qdrant_recommend("spotify-vdb", tracks_features, payload, limit)
+    json_recommend = qdrant_recommend(sp, "spotify-vdb", tracks_features, payload, limit)
 
 
     # similarity_matrix = cosine_similarity(df_features, tracks_features)
