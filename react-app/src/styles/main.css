@@ -297,3 +297,41 @@ li.page-item.active > span.page-link {
 .invalid-input {
   color: red;
 }
+
+.playlist-grid {
+  padding: 10%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.playlist-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.playlist-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.playlist-item img:hover {
+  transform: scale(1.05);
+}
+
+.playlist-item p {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  color: white
+}
+
+.playlist-item p::before {
+  content: none;
+}
+

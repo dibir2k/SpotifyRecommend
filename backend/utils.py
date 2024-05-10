@@ -296,16 +296,11 @@ def get_album_images(sp, track_ids):
     albums_name = []
     durations = []
     n_tracks = len(track_ids)
-    print(n_tracks)
     for i in range(0, n_tracks, 50):
-        print(i)
         left_limit = i
         right_limit = min(i + 50, n_tracks)
-        print(left_limit)
-        print(right_limit)
         tracks = sp.tracks(track_ids[left_limit:right_limit])["tracks"]
         for track in tracks:
-            print(track["album"]["images"])
             images_url.append(track["album"]["images"][2]["url"])
             albums_name.append(track["album"]["name"]) 
             duration = track["duration_ms"]

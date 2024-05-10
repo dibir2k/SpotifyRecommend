@@ -315,7 +315,6 @@ def my_playlists():
     # Fetch recently played tracks
     user_playlists = sp.current_user_playlists(limit = 50, offset=0)
     
-    print("** HEY **")
     playlist_items = []
     keys = ["playlist_id", "playlist_name", "image_url"]
     for playlist in user_playlists['items']:
@@ -325,6 +324,56 @@ def my_playlists():
         playlist_items.append(dict(zip(keys, [playlist_id, playlist_name, playlist_image_url])))
 
     return jsonify(playlist_items)
+
+
+@app.route('/recommendations/playlist/playlist-data')
+def get_playlist_items():
+    # Check if user is authenticated
+    headers = request.headers
+    id = headers.get("Authorization")
+    playlist_id = headers.get("Playlist-id")
+    token_info = json.loads(r.get(id).decode('utf-8'))
+    
+    if not token_info:
+        return jsonify({"message" : "Forbidden access"}), 401
+
+    if sp_oauth.is_token_expired(token_info):
+        refresh_token = token_info["refresh_token"]
+        token_info = sp_oauth.refresh_access_token(refresh_token)
+        r.set(id, token_info)
+
+    # Decrypt tokens before using them
+    access_token = token_info['access_token']
+
+    # Initialize Spotipy with the access token
+    sp = Spotify(auth=access_token)
+    playlist_tracks = sp.playlist(playlist_id)["tracks"]["items"]
+
+    tracks = []
+
+    for track in playlist_tracks:
+        track = track["track"]
+        track_name = track["name"]
+        track_id = track["id"]
+        artist_name = ""
+        n_artists = len(track["artists"])
+        for i, artist in enumerate(track["artists"]):
+            artist_name = artist_name.join(artist["name"])
+            if i < n_artists -1:
+                artist_name.join(", ")
+
+        duration = utils.ms_to_string(track["duration_ms"])
+        album_name = track["album"]["name"]
+        image = track["album"]["images"][2]["url"]
+
+        tracks.append({"track_name":track_name, "artist_name":artist_name, "track_id":track_id, 
+                      "duration":duration, "album_name":album_name, "image":image})
+
+    # Process the tracks and get suggestions for similar tracks
+    # You can implement this part using Spotipy's recommendation endpoints
+    tracks_json = jsonify(tracks)
+
+    return tracks_json, 200
 
 
 

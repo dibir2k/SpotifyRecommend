@@ -18,6 +18,7 @@ import MyPlaylistsPage from './components/MyPlaylists';
 import RecentlyPlayedPage from './components/RecentlyPlayed';
 import TopTracksPage from './components/TopTracks';
 import TracksPage from './components/Tracks';
+import PlaylistPage from './components/Playlist';
 
 const App=()=>{
 
@@ -28,7 +29,7 @@ const App=()=>{
             <NavBar/>
             <Routes>
                 <Route path="/my-playlists" element={<MyPlaylistsPage/>}></Route>
-                
+                <Route path="/my-playlist/:playlist_id" element={<PlaylistPage />} />
                 <Route path="/top-tracks" element={<TopTracksPage/>}></Route>
                 <Route path="/recently-played" element={<RecentlyPlayedPage/>}></Route>
                 <Route path="/tracks" element={<TracksPage/>}></Route>
