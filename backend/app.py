@@ -413,7 +413,7 @@ def playlist_recommendations():
     sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
-    recommended_json = jsonify(utils.recommended(sp, limit=20, mode="in", track_name=playlist_url, username=username))
+    recommended_json = jsonify(utils.recommended(sp, limit=50, mode="in", track_name=playlist_url, username=username))
 
     return recommended_json, 200
 

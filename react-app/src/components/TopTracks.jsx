@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import ListOfTracks from "../utils";
+import { ListOfTracks, Loader } from "../utils";
 import Button from 'react-bootstrap/Button';
 import { useLocalStorage } from "@uidotdev/usehooks";
 
@@ -74,12 +74,12 @@ const TopTracksPage = () => {
     }
     if (topTracks == null) {
         return (
-            <div>Getting your top tracks...</div>
+            <div><Loader /></div>
         )
     }
     else {
         return ( 
-            <div >
+            <div className="custom-container">
                 <button className="button-sug"
                     onClick={trackData.length > 0 ? handleClick : null}
                     //variant="success" 

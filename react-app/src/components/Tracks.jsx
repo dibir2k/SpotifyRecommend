@@ -2,13 +2,13 @@ import React from "react";
 // import { Table } from 'react-bootstrap';
 // import CustomPagination from './CustomPagination';
 // import { useState, useEffect } from "react";
-import ListOfTracks from "../utils";
+import { ListOfTracks, Loader } from "../utils";
 
 const TracksPage = () => {
     const trackData = JSON.parse(localStorage.getItem("trackData") || null);
 
     return (
-        <div>
+        <div className="custom-container spacer">
             <ListOfTracks tracks={trackData} />
         </div>
     );

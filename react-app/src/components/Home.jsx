@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
+import { Loader } from "../utils";
 import * as yup from "yup";
 
 const SignupSchema = yup.object().shape({
@@ -27,6 +28,8 @@ const SignupSchema = yup.object().shape({
 const LoggedInHome = () => {
   const navigate = useNavigate();
   const [trackData, saveTrackData] = useLocalStorage("trackData", []);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const {
     register,
     handleSubmit,
@@ -36,6 +39,7 @@ const LoggedInHome = () => {
   });
 
   const onSubmit = async (data) => {
+    setIsLoading(true);
     const requestOptions = {
       credentials: 'include',
       mode: 'cors',
@@ -50,42 +54,57 @@ const LoggedInHome = () => {
     let response = null;
     let jsonData = null;
 
-    if (data.url) {
-      response = await fetch('/api/recommendations/playlist', requestOptions);
+    try {
+      if (data.url) {
+        response = await fetch('/api/recommendations/playlist', requestOptions);
+      }
+      else {
+        response = await fetch('/api/recommendations/track', requestOptions);
+      }
+
+      jsonData = await response.json();
+
+      saveTrackData(jsonData);
+
+      setError(null);
+
+      navigate('/tracks');
     }
-    else {
-      response = await fetch('/api/recommendations/track', requestOptions);
+    catch(error) { 
+      setError(error);
+      setIsLoading(false); 
     }
-
-    jsonData = await response.json();
-
-    saveTrackData(jsonData);
-
-    navigate('/tracks');
   }
 
   return (
     <div className='form-container'>
-    <form 
-        onSubmit={handleSubmit(onSubmit)} 
-    >
-      <div>
-        <label>Track Name</label>
-        <input {...register("trackName")} />
-        {errors.trackName && <p>{errors.trackName.message}</p>}
-      </div>
-      <div style={{ marginBottom: 10 }}>
-        <label>Artist Name</label>
-        <input {...register("artistName")} />
-        {errors.artistName && <p>{errors.artistName.message}</p>}
-      </div>
-      <div>
-        <label>Playlist/Track url</label>
-        <input {...register("url")} />
-        {errors.url && <p>{errors.url.message}</p>}
-      </div>
-      <input type="submit" />
-    </form>
+      {error !== null && !isLoading && <div>
+        <p className='invalid-input'>Invalid Input. Please try again!</p>
+      </div>}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Conditionally render loading spinner */}
+        {isLoading && <div><Loader /></div>}
+        {!isLoading && (
+          <>
+            <div>
+              <label>Track Name</label>
+              <input {...register("trackName")} />
+              {errors.trackName && <p>{errors.trackName.message}</p>}
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label>Artist Name</label>
+              <input {...register("artistName")} />
+              {errors.artistName && <p>{errors.artistName.message}</p>}
+            </div>
+            <div>
+              <label>Playlist/Track url</label>
+              <input {...register("url")} />
+              {errors.url && <p>{errors.url.message}</p>}
+            </div>
+            <input type="submit" />
+          </>
+        )}
+      </form>
     </div>
   );
 }
@@ -140,7 +159,7 @@ const HomePage = () => {
     fetchLoggedStatus();
   });
   return (
-    <div className='container'>
+    <div>
       {logged ? <LoggedInHome /> : <LoggedOutHome />}
     </div>
   )

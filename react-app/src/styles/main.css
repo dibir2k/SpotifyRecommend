@@ -116,36 +116,6 @@ p {
   margin: auto; /* Center the image horizontally */
 }
 
-#table {
-    background-color: #0e101c; /* Change to your desired background color */
-    color: #d0ddcb; /* Change to your desired text color */
-    width: 100%;
-  
-}
-
-  /* Define CSS rules for table header cells */
-#table > tbody > tr {
-    background-color: #1f211f;
-    border-top-width: 0.5px;
-    border-color: #88a37c99;
-    color: #d0ddcb;
-    margin: 50px;
-  }
-
-  #table > tbody > tr:hover {
-    background-color: #15803b; /* Change to your desired data text color */
-  }
-
-  #table > tbody > th {
-    border-top-width: 0.5px;
-    border-color: #1f211f; /* Change to your desired data text color */
-  }
-  /* button[type="submit"],
-  input[type="button"],
-  input[type="submit"] {
-    -webkit-appearance: none;
-  } */
-
   .button-sug {
     background: #1DB954;
     color: rgb(13, 13, 13);
@@ -173,7 +143,8 @@ button[disabled]{
 .custom-container {
     max-width: 100%;
     min-width: 90%;
-    width: 90%;
+    width: 100%;
+    margin: auto
 }
 
 
@@ -292,3 +263,37 @@ li {
   }
 }
 
+.pagination {
+  padding: 10px;
+  --bs-pagination-color: white;
+  --bs-pagination-bg: #1f211f;
+  --bs-pagination-active-color: #1f211f;
+  --bs-pagination-active-bg: #15803b;
+  --bs-pagination-active-border-color: #15803b;
+  --bs-pagination-disabled-color: white;
+  --bs-pagination-disabled-bg: #4d534d;
+}
+
+li.page-item > a {
+  background-color: #1f211f;
+  color: white;
+}
+
+li.page-item.active > span.page-link {
+  background-color: #15803b;
+  color: #1f211f;
+  border-color: #15803b;
+}
+
+.mb-2 {
+  float: right;
+  text-align: right;
+}
+
+.spacer {
+  margin-top: 10%;
+}
+
+.invalid-input {
+  color: red;
+}

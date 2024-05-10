@@ -87,8 +87,9 @@ import React from "react";
 import { Table } from 'react-bootstrap';
 import CustomPagination from './components/CustomPagination';
 import { useState, useEffect, Fragment } from "react";
+import { RotatingLines } from "react-loader-spinner";
 
-export default function ListOfTracks({tracks}) {
+export function ListOfTracks({tracks}) {
     console.log(typeof tracks);
     const [searchFilter, setSearchFilter] = useState(''); // filter the search
     const [currentPage, setCurrentPage] = useState(1);
@@ -182,3 +183,15 @@ export default function ListOfTracks({tracks}) {
     </div>
   );
 };
+
+export function Loader() {
+  return (
+    <RotatingLines
+      strokeColor="grey"
+      strokeWidth="5"
+      animationDuration="0.75"
+      width="96"
+      visible={true}
+    />
+  )
+}

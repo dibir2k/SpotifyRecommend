@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import ListOfTracks from "../utils";
+import { ListOfTracks, Loader } from "../utils";
 import Button from 'react-bootstrap/Button';
 import { useLocalStorage } from "@uidotdev/usehooks";
 
@@ -74,7 +74,7 @@ const RecentlyPlayedPage = () => {
     }
     if (rpTracks == null) {
         return (
-            <div>Getting your recently played tracks...</div>
+          <div><Loader /></div>
         )
     }
     else {
