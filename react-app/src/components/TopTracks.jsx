@@ -1,7 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { ListOfTracks, Loader } from "../utils";
-import Button from 'react-bootstrap/Button';
 import { useLocalStorage } from "@uidotdev/usehooks";
 
 const TopTracksPage = () => {

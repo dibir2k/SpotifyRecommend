@@ -4,11 +4,7 @@ from flask_session import Session
 from flask import (
     Flask,
     jsonify,
-    session,
     request,
-    redirect,
-    url_for,
-    make_response
 )
 
 import redis
@@ -18,20 +14,13 @@ from spotipy import Spotify, CacheHandler
 from spotipy.oauth2 import SpotifyOAuth
 
 from uuid import uuid4
-
 import os
 import json
 from cryptography.fernet import Fernet
 import logging
-import base64
 
 import utils
 from config import AppConfig
-
-
-# from flask_sqlalchemy import SQLAlchemy
-
-REACT_HOMEPAGE_URL = "http://localhost:5173"
 
 app = Flask(__name__, static_url_path="/", static_folder="./client/build")
 app.config.from_object(AppConfig)
@@ -48,10 +37,6 @@ cipher = Fernet(encryption_key)
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
 
 logger = logging.getLogger(__name__)
-
-# Set up database connection
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-# db = SQLAlchemy(app)
 
 class RedisCacheHandler(CacheHandler):
     """
@@ -109,10 +94,8 @@ def index():
 #Get auth url
 @app.route("/authurl")
 def auth_url():
-    # Redirect to Spotify authorization page
     auth_url = sp_oauth.get_authorize_url()
 
-    #return redirect(auth_url)
     return jsonify({"AuthUrl" : auth_url}), 200
 
 #Login route
@@ -148,16 +131,9 @@ def login():
 # Logout route
 @app.route("/logout", methods = ["POST"])
 def logout():
-    # Clear cached token information from session
     id = request.headers.get('Authorization')
-    print("\n\nID IS (LOGOUT) = ", id)
-    #session.pop(id)
     r.delete(id)
     print(r.keys())
-
-    # Clear token information from the database
-    #    Token.query.delete()
-    #    db.session.commit()
 
     return jsonify({"Status":"OK"}), 200
 
@@ -189,7 +165,6 @@ def verify_request():
     
 @app.route("/recommendations/recently-played-list")
 def recently_played_list():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -207,7 +182,6 @@ def recently_played_list():
     # Initialize Spotipy with the access token
     sp = Spotify(auth=access_token)
 
-    # Fetch recently played tracks
     rp_json = jsonify(utils.get_recently_played_list(sp))
 
     return rp_json
@@ -215,7 +189,6 @@ def recently_played_list():
 
 @app.route("/recommendations/recently-played")
 def recently_played_recommendations():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -228,19 +201,16 @@ def recently_played_recommendations():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
     sp = Spotify(auth=access_token)
 
-    # Fetch recently played tracks
     recommended_json = jsonify(utils.recommended(sp, 50, mode="rp"))
     return recommended_json
 
 @app.route("/recommendations/top-tracks-list")
 def top_tracks_list():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -253,13 +223,11 @@ def top_tracks_list():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
     sp = Spotify(auth=access_token)
 
-    # Fetch recently played tracks
     tt_json = jsonify(utils.get_top_tracks_list(sp))
 
     return tt_json
@@ -267,7 +235,6 @@ def top_tracks_list():
 
 @app.route("/recommendations/top-tracks")
 def top_tracks_recommendations():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -280,20 +247,17 @@ def top_tracks_recommendations():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
     sp = Spotify(auth=access_token)
 
-    # Fetch recently played tracks
     recommended_json = jsonify(utils.recommended(sp, 50, mode="tt"))
     return recommended_json    
 
 
 @app.route("/recommendations/my-playlists")
 def my_playlists():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -306,7 +270,6 @@ def my_playlists():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
@@ -320,7 +283,7 @@ def my_playlists():
     for playlist in user_playlists['items']:
         playlist_id = playlist['id']
         playlist_name = playlist['name']
-        playlist_image_url = playlist['images'][0]['url'] if playlist['images'] else ''  # Get the first image URL if available
+        playlist_image_url = playlist['images'][0]['url'] if playlist['images'] else '' 
         playlist_items.append(dict(zip(keys, [playlist_id, playlist_name, playlist_image_url])))
 
     return jsonify(playlist_items)
@@ -328,7 +291,6 @@ def my_playlists():
 
 @app.route('/recommendations/playlist/playlist-data')
 def get_playlist_items():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     playlist_id = headers.get("Playlist-id")
@@ -342,7 +304,6 @@ def get_playlist_items():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
@@ -369,8 +330,6 @@ def get_playlist_items():
         tracks.append({"track_name":track_name, "artist_name":artist_name, "track_id":track_id, 
                       "duration":duration, "album_name":album_name, "image":image})
 
-    # Process the tracks and get suggestions for similar tracks
-    # You can implement this part using Spotipy's recommendation endpoints
     tracks_json = jsonify(tracks)
 
     return tracks_json, 200
@@ -379,7 +338,6 @@ def get_playlist_items():
 
 @app.route('/recommendations/playlist/<playlist_id>')
 def my_playlist_recommendations(playlist_id):
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -392,25 +350,19 @@ def my_playlist_recommendations(playlist_id):
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     # Initialize Spotipy with the access token
     sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
-    # Fetch tracks from the selected playlist
     recommended_json = jsonify(utils.recommended(sp, limit=50, mode="in", track_name=playlist_id, username=username))
-
-    # Process the tracks and get suggestions for similar tracks
-    # You can implement this part using Spotipy's recommendation endpoints
 
     return recommended_json
 
 
 @app.route('/recommendations/track', methods = ["POST"])
 def track_recommendations():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -423,7 +375,6 @@ def track_recommendations():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     track_name = request.json.get("trackName")
@@ -440,7 +391,6 @@ def track_recommendations():
 
 @app.route('/recommendations/playlist', methods = ["POST"])
 def playlist_recommendations():
-    # Check if user is authenticated
     headers = request.headers
     id = headers.get("Authorization")
     token_info = json.loads(r.get(id).decode('utf-8'))
@@ -453,7 +403,6 @@ def playlist_recommendations():
         token_info = sp_oauth.refresh_access_token(refresh_token)
         r.set(id, token_info)
 
-    # Decrypt tokens before using them
     access_token = token_info['access_token']
 
     playlist_url = request.json.get("url")

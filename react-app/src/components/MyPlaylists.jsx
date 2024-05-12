@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ListOfTracks, Loader } from "../utils";
+import { Loader } from "../utils";
 import { useNavigate } from "react-router-dom"
 
 const MyPlaylistsPage = () => {

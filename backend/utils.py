@@ -1,10 +1,7 @@
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
 from qdrant_client import QdrantClient, models
-import json
 import os
 import glob
-import requests
 
 DIR = os.getcwd()
 
@@ -34,16 +31,12 @@ def clean_df(df):
 
     return features_df
 
-# Get genre of an artist
-
 def get_artist_genres(sp, artist_name):
     result = sp.search(artist_name)
     track = result['tracks']['items'][0]
     artist = sp.artist(track["artists"][0]["external_urls"]["spotify"])
     return artist["genres"]
 
-
-# Get main genre from list of genres
 
 def get_main_genre(spotify_df, genres_list):
     all_genres_dict = spotify_df["genre"].value_counts().to_dict()
@@ -66,9 +59,6 @@ def get_main_genre(spotify_df, genres_list):
     
     return tracks_genres
 
-
-# get track uri from track and artist name
-
 def get_track_uri(sp, track_name, artist_name):
     query = f"artist:{artist_name} track:{track_name}"
     results = sp.search(q=query, type='track')
@@ -82,7 +72,6 @@ def get_track_uri(sp, track_name, artist_name):
 
 def get_recently_played_list(sp):
     payload = []
-    #if token:
     results = sp.current_user_recently_played(limit = 50)
     recently_items = results['items']
 
@@ -106,7 +95,6 @@ def get_recently_played(sp):
     uris = []
     genres = []
     payload = []
-    #if token:
     results = sp.current_user_recently_played(limit = 25)
     recently_items = results['items']
 
@@ -120,8 +108,6 @@ def get_recently_played(sp):
         payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": uri})
 
     return uris, genres, payload
-    #else:
-    #    print("Can't get token")
 
 def get_top_tracks_list(sp):
     payload = []
@@ -160,14 +146,8 @@ def get_top_tracks(sp):
         payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
 
     return uris, genres, payload
-    #else:
-    #    print("Can't get token for")
-
-# Get tracks uris in a playlist
 
 def get_playlist_tracks(sp, username, playlist_id):
-    # Ref - https://stackoverflow.com/questions/39086287/spotipy-how-to-read-more-than-100-tracks-from-a-playlist?noredirect=1&lq=1
-    #if token:
     payload = []
     results = sp.user_playlist_tracks(username,playlist_id)
     playlist_items = results['items']
@@ -231,29 +211,6 @@ def create_df_tracks(sp, tracks, genre):
     df_tracks["genre"] = genre
 
     return df_tracks
-
-
-# # Extract features
-
-# def get_all_features(df, track_df=None):
-#     df_columns = list(df.columns)
-#     track_df = track_df[list(df_columns)]
-    
-#     len_track_df = len(track_df)
-#     df = pd.concat([df, track_df], ignore_index=True)
-    
-#     #Encode genre in one-hot sense
-#     total_df = pd.get_dummies(df, columns=["genre"], dtype="int64")
-
-#     for col in total_df.columns:
-#         if total_df[col].dtype == "float64":
-#             total_df[col] = (total_df[col] - total_df[col].mean()) / total_df[col].std()
-    
-#     df  = total_df.head(len(df) - len_track_df)
-#     track_df  = total_df.tail(len_track_df)
-
-#     return df.to_numpy(), track_df.to_numpy()
-
 
 
 def get_features(track_df=None):
@@ -388,7 +345,6 @@ def qdrant_recommend(sp, collection_name, features, payload, limit=50):
 
 
 def recommended(sp, limit=200, mode = "rp", track_name=None, artist_name=None, username=None):
-    st = time.time()
 
     spotify_df = read_df()
 
@@ -411,19 +367,4 @@ def recommended(sp, limit=200, mode = "rp", track_name=None, artist_name=None, u
 
     json_recommend = qdrant_recommend(sp, "spotify-vdb", tracks_features, payload, limit)
 
-
-    # similarity_matrix = cosine_similarity(df_features, tracks_features)
-    
-    # similarity_vector = np.median(similarity_matrix, axis = 1)
-
-    # recommended_idxs = np.argsort(similarity_vector)[::-1][1:limit + 1]
-
-    # recommended_df = spotify_df[spotify_df.index.isin(recommended_idxs)].reindex(recommended_idxs)
-
-    # print(recommended_df[["artist_name", "track_name", "track_id"]])#, "image_url"]])
-    end = time.time()
-
-    with open("./test.txt", "a") as f:
-        f.write("time  = " + str(end-st) + "\n")
-
-    return json_recommend#, "image_url"]].to_json()
+    return json_recommend
