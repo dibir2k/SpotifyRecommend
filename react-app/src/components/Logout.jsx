@@ -14,8 +14,7 @@ const LogoutPage = () => {
             });
             const data = await response.json();
             console.log(data);
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("id");
+            localStorage.clear();
             window.location.href = "/";
           } catch (error) {
             console.error("Error during logout:", error);

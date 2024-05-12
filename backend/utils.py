@@ -270,7 +270,7 @@ import time
 
 def qdrant_recommend(sp, collection_name, features, payload, limit=50):
 
-    client = QdrantClient("localhost", port=6333, timeout=10)
+    client = QdrantClient("localhost", port=6334, timeout=10, prefer_grpc=True)
 
     info = client.get_collection(collection_name=collection_name)
 

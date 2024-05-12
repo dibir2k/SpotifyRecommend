@@ -103,11 +103,9 @@ def auth_url():
 def login():
 
     user_id = uuid4().hex
-    print("USER ID = ", user_id)
 
     if request.args.get("code"):
         code = request.args.get("code")
-        print("code = ", code)
 
         try:
             cache_handler = RedisCacheHandler(r, user_id)
@@ -117,8 +115,6 @@ def login():
             print("\n\n ******** EXCEPTION OCCURRED ********\n\n")
             return jsonify({"id":""}), 502
         else:            
-            print("USER ID = ", user_id)
-            print("Access token: ", token_info)
             response = jsonify({"id" : user_id}), 200
             return response
         
