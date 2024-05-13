@@ -21,7 +21,7 @@ The backend was built using the following libraries and services:
 The vector database was first populated with roughly a million tracks from kaggle's dataset: "Spotify Million Song Dataset", available at: https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset. The database grows as the user requests suggestions for tracks not present in the vector database yet. They are first added to the collection and later used to obtain recommendations of similar tracks.
 
 ### Frontend
-The clinet side was built using React + Vite, and CSS.  
+The client side was built using React + Vite, and CSS.  
 
 ## Instructions for Running the app
 
