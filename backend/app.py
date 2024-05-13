@@ -27,11 +27,7 @@ app.config.from_object(AppConfig)
 
 server_session = Session(app)
 
-CORS(app, origins=['http://localhost:5173'], supports_credentials=True)
-
-# Encryption key (keep this secret)
-encryption_key = os.environ.get("ENCRYPTION_KEY")
-cipher = Fernet(encryption_key)
+CORS(app, origins=['http://spotify-recommend:80'], supports_credentials=True)
 
 # Configure logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
@@ -78,7 +74,7 @@ def create_sp_oauth():
     sp_oauth = SpotifyOAuth(
         client_id="b1625933bc024e5aa12e7d262fbf6e46",
         client_secret="b130e9b709c841439515839d8010928c",
-        redirect_uri="http://localhost:5173/login",
+        redirect_uri="http://spotify-recommend:80/login",
         scope="user-read-recently-played user-top-read playlist-read-private playlist-modify-private user-read-private",
         cache_handler=RedisCacheHandler(r)
     )

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"
 
 const LoginPage = () => {
-
+  const navigate = useNavigate();
   useEffect(() => {
     const handleLogin = async () => {
       try {
@@ -30,7 +31,8 @@ const LoginPage = () => {
           }
 
           // Redirect to the desired page after successful login
-          window.location.replace("http://localhost:5173");
+          // window.location.replace("http://localhost:4173");
+          navigate('/');
         }
         else {
           const response = await fetch("/api/authurl");
