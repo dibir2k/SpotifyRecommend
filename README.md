@@ -31,13 +31,13 @@ By following the steps below, you should be able to successfully run the app and
 
 1. Login to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). If necessary, read the latest [Developer Terms of Service](https://developer.spotify.com/terms) to complete your account set up.
 
-    * Create an app
-    An app provides the Client ID and Client Secret needed to request an access token by implementing any of the authorization flows. To create an app, go to your Dashboard, click on the Create an app button and enter the following information:
+    Create an app
+    * An app provides the Client ID and Client Secret needed to request an access token by implementing any of the authorization flows. To create an app, go to your Dashboard, click on the Create an app button and enter the following information:
 
-    App Name: My App
-    App Description: This is my first Spotify app
-    Redirect URI: You won't need this parameter in this example, so use http://localhost:3000.
-    Finally, check the Developer Terms of Service checkbox and tap on the Create button.
+    - App Name: My App
+    - App Description: This is my first Spotify app
+    - Redirect URI: You won't need this parameter in this example, so use http://localhost:3000.
+    - Finally, check the Developer Terms of Service checkbox and tap on the Create button.
 
 2. After successfully creating the app, go to your app settings and copy your client id and client secret. Paste each of them in the corresponding place in the .env file.
 
