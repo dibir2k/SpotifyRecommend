@@ -20,6 +20,8 @@ import json
 from cryptography.fernet import Fernet
 import logging
 
+from dotenv import load_dotenv
+
 import utils
 from config import AppConfig
 
@@ -70,11 +72,16 @@ class RedisCacheHandler(CacheHandler):
 
 r = redis.Redis(host='redis')
 
+load_dotenv()
+
+CLIENT_ID = os.getenv('CLIENT_ID')
+CLIENT_SECRET = os.getenv('CLIENT_SECRET')
+
 # Spotipy oauth
 def create_sp_oauth():
     sp_oauth = SpotifyOAuth(
-        client_id="b1625933bc024e5aa12e7d262fbf6e46",
-        client_secret="b130e9b709c841439515839d8010928c",
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
         redirect_uri="http://localhost:80/login",
         scope="user-read-recently-played user-top-read playlist-read-private playlist-modify-private user-read-private",
         cache_handler=RedisCacheHandler(r)
