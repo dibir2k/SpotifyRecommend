@@ -41,7 +41,7 @@ By following the steps below, you should be able to successfully run the app and
 
 2. After successfully creating the app, go to your app settings and copy your client id and client secret. Paste each of them in the corresponding place in the .env file.
 
-3. Run the following command to build and start the docker container:
+3. Make sure you have Docker installed. Run the following command to build and start the docker container:
 
 ```bash
 docker-compose up --build
