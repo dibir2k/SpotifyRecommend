@@ -1,0 +1,64 @@
+services:
+  spotify-recommend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - qdrant
+      - redis
+    environment:
+      - FLASK_ENV=production
+      - FLASK_SECRET_KEY=7538306dcf4a1eb26e9a3497
+    networks:
+      - app-network
+
+  qdrant:
+    image: qdrant/qdrant
+    volumes:
+      - ./backend/qdrant_storage:/qdrant/storage
+
+    ports:
+      - "6333:6333"
+      - "6334:6334"  # Change the port to 6334 for gRPC
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest  # Use the official Redis Docker image
+
+    ports:
+      - "6379:6379"  # Expose Redis on port 6379
+    networks:
+      - app-network
+
+  spotify-recommend-frontend:
+    build: 
+      context: ./react-app
+      dockerfile: Dockerfile
+    # depends_on:
+    #   - spotify-recommend
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+  nginx:
+      image: nginx:1.15
+      container_name: nginx
+      restart: unless-stopped
+      volumes:
+          - ./react-app/dist:/usr/share/nginx/html
+          - ./react-app/nginx.conf:/etc/nginx/nginx.conf
+      ports:
+          - 80:80
+      networks:
+          - app-network
+      depends_on:
+          - spotify-recommend
+          - spotify-recommend-frontend
+
+networks:
+  app-network:
+    driver: bridge

@@ -5,6 +5,7 @@ from flask import (
     Flask,
     jsonify,
     request,
+    Blueprint
 )
 
 import redis
@@ -27,7 +28,7 @@ app.config.from_object(AppConfig)
 
 server_session = Session(app)
 
-CORS(app, origins=['http://spotify-recommend:80'], supports_credentials=True)
+CORS(app, origins=['http://spotify-recommend-frontend:80'], supports_credentials=True)
 
 # Configure logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
@@ -67,14 +68,14 @@ class RedisCacheHandler(CacheHandler):
         except RedisError as e:
             logger.warning('Error saving token to cache: ' + str(e))
 
-r = redis.Redis()
+r = redis.Redis(host='redis')
 
 # Spotipy oauth
 def create_sp_oauth():
     sp_oauth = SpotifyOAuth(
         client_id="b1625933bc024e5aa12e7d262fbf6e46",
         client_secret="b130e9b709c841439515839d8010928c",
-        redirect_uri="http://spotify-recommend:80/login",
+        redirect_uri="http://localhost:80/login",
         scope="user-read-recently-played user-top-read playlist-read-private playlist-modify-private user-read-private",
         cache_handler=RedisCacheHandler(r)
     )
@@ -82,20 +83,21 @@ def create_sp_oauth():
 
 sp_oauth = create_sp_oauth()
 
+#api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
 
 #Get auth url
-@app.route("/authurl")
+@app.route("/api/authurl")
 def auth_url():
     auth_url = sp_oauth.get_authorize_url()
 
     return jsonify({"AuthUrl" : auth_url}), 200
 
 #Login route
-@app.route("/login", methods=["POST"])
+@app.route("/api/login", methods=["POST"])
 def login():
 
     user_id = uuid4().hex
@@ -121,7 +123,7 @@ def login():
 
 
 # Logout route
-@app.route("/logout", methods = ["POST"])
+@app.route("/api/logout", methods = ["POST"])
 def logout():
     id = request.headers.get('Authorization')
     r.delete(id)
@@ -130,7 +132,7 @@ def logout():
     return jsonify({"Status":"OK"}), 200
 
 
-@app.route("/logged")
+@app.route("/api/logged")
 def logged():
     id = request.headers.get("Authorization")
     response = jsonify({"Authenticated":r.exists(id)}), 200
@@ -155,7 +157,7 @@ def verify_request():
 
     return access_token
     
-@app.route("/recommendations/recently-played-list")
+@app.route("/api/recommendations/recently-played-list")
 def recently_played_list():
     headers = request.headers
     id = headers.get("Authorization")
@@ -179,7 +181,7 @@ def recently_played_list():
     return rp_json
 
 
-@app.route("/recommendations/recently-played")
+@app.route("/api/recommendations/recently-played")
 def recently_played_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
@@ -201,7 +203,7 @@ def recently_played_recommendations():
     recommended_json = jsonify(utils.recommended(sp, 50, mode="rp"))
     return recommended_json
 
-@app.route("/recommendations/top-tracks-list")
+@app.route("/api/recommendations/top-tracks-list")
 def top_tracks_list():
     headers = request.headers
     id = headers.get("Authorization")
@@ -225,7 +227,7 @@ def top_tracks_list():
     return tt_json
 
 
-@app.route("/recommendations/top-tracks")
+@app.route("/api/recommendations/top-tracks")
 def top_tracks_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
@@ -248,7 +250,7 @@ def top_tracks_recommendations():
     return recommended_json    
 
 
-@app.route("/recommendations/my-playlists")
+@app.route("/api/recommendations/my-playlists")
 def my_playlists():
     headers = request.headers
     id = headers.get("Authorization")
@@ -281,7 +283,7 @@ def my_playlists():
     return jsonify(playlist_items)
 
 
-@app.route('/recommendations/playlist/playlist-data')
+@app.route('/api/recommendations/playlist/playlist-data')
 def get_playlist_items():
     headers = request.headers
     id = headers.get("Authorization")
@@ -328,7 +330,7 @@ def get_playlist_items():
 
 
 
-@app.route('/recommendations/playlist/<playlist_id>')
+@app.route('/api/recommendations/playlist/<playlist_id>')
 def my_playlist_recommendations(playlist_id):
     headers = request.headers
     id = headers.get("Authorization")
@@ -353,7 +355,7 @@ def my_playlist_recommendations(playlist_id):
     return recommended_json
 
 
-@app.route('/recommendations/track', methods = ["POST"])
+@app.route('/api/recommendations/track', methods = ["POST"])
 def track_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
@@ -381,7 +383,7 @@ def track_recommendations():
     return recommended_json, 200
 
 
-@app.route('/recommendations/playlist', methods = ["POST"])
+@app.route('/api/recommendations/playlist', methods = ["POST"])
 def playlist_recommendations():
     headers = request.headers
     id = headers.get("Authorization")
@@ -409,4 +411,4 @@ def playlist_recommendations():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
