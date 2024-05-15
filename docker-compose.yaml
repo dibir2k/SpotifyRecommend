@@ -43,6 +43,7 @@ services:
       - spotify-recommend
     volumes:
        - ./react-app:/app
+       - /app/node_modules
     ports:
       - "80:80"
     networks:
