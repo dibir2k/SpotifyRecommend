@@ -131,13 +131,14 @@ p {
 
   }
 
-.button-sug:hover {
+.button-sug:hover:not([disabled]) {
     background: #15803b;
   }
 
 button:disabled,
 button[disabled]{
-  background: #093819;;
+  background: #093819;
+  cursor: default;
 }
 
 .custom-container {
