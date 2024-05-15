@@ -124,40 +124,41 @@ const LoggedOutHome = () => {
 
 
 
-const HomePage = () => {
-  const [error, setError] = useState(null);
-  const [logged, setLogged] = useState(false);
+const HomePage = ({logged}) => {
+  // const [error, setError] = useState(null);
+  // const [logged, setLogged] = useState(false);
 
-  useEffect(() => {
-    const fetchLoggedStatus = async () => {
-      try {
-        console.log('Fetching logged status...');
-        let id = localStorage.getItem("id");
-        if (id == null) id = "None"
-        // Fetch the authorization URL from the backend
-        const response = await fetch('/api/logged', {
-          credentials: 'include',
-          mode: 'cors',
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 
-                    'Authorization': id},
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch logged status');
-        }
-        const data = await response.json();
-        if (data.Authenticated) {
-          setLogged(data.Authenticated);
-          // localStorage.setItem("id", data.id);
-        }
-        console.log(data);
-      } catch (error) {
-        console.error('Logged error:', error);
-        setError('Failed to check logged status. Please try again.');
-      }
-    };
-    fetchLoggedStatus();
-  });
+  // useEffect(() => {
+  //   const isLogged = localStorage.getItem("id") !== null;
+  //   setLogged(isLogged);
+    // const fetchLoggedStatus = async () => {
+    //   try {
+    //     console.log('Fetching logged status...');
+    //     let id = localStorage.getItem("id");
+    //     if (id == null) id = "None"
+    //     // Fetch the authorization URL from the backend
+    //     const response = await fetch('/api/logged', {
+    //       credentials: 'include',
+    //       mode: 'cors',
+    //       method: 'GET',
+    //       headers: { 'Content-Type': 'application/json', 
+    //                 'Authorization': id},
+    //     });
+    //     if (!response.ok) {
+    //       throw new Error('Failed to fetch logged status');
+    //     }
+    //     const data = await response.json();
+    //     if (data.Authenticated) {
+    //       setLogged(data.Authenticated);
+    //       // localStorage.setItem("id", data.id);
+    //     }
+    //   } catch (error) {
+    //     console.error('Logged error:', error);
+    //     setError('Failed to check logged status. Please try again.');
+    //   }
+    // };
+    // fetchLoggedStatus();
+  // }, []);
   return (
     <div>
       {logged ? <LoggedInHome /> : <LoggedOutHome />}

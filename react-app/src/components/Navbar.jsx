@@ -39,41 +39,44 @@ const LoggedOutLinks = () => {
     )
 }
 
-const NavBar = () => {
+const NavBar = ({logged}) => {
 
-    const [logged, setLogged] = useState(false);
-    const [error, setError] = useState(null);
-    console.log(logged)
+    // const [logged, setLogged] = useState(false);
+    // const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchLoggedStatus = async () => {
-        try {
-            console.log('Fetching logged status...');
-            let id = localStorage.getItem("id");
-            if (id == null) id = "None"
-            // Fetch the authorization URL from the backend
-            const response = await fetch('/api/logged', {
-            credentials: 'include',
-            mode: 'cors',
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json', 
-                        'Authorization': id},
-            });
-            if (!response.ok) {
-            throw new Error('Failed to fetch logged status');
-            }
-            const data = await response.json();
-            if (data.Authenticated) {
-                setLogged(data.Authenticated);
-            }
-            console.log(data);
-        } catch (error) {
-            console.error('Logged error:', error);
-            setError('Failed to check logged status. Please try again.');
-        }
-        };
-        fetchLoggedStatus();
-    }, []);
+    // useEffect(() => {
+    //     const isLogged = localStorage.getItem("id") !== null;
+    //     setLogged(isLogged);
+        // const fetchLoggedStatus = async () => {
+        // try {
+            
+            // console.log('Fetching logged status...');
+            // let id = localStorage.getItem("id");
+            // if (id == null) id = "None"
+            // // Fetch the authorization URL from the backend
+            // const response = await fetch('/api/logged', {
+            // credentials: 'include',
+            // mode: 'cors',
+            // method: 'GET',
+            // headers: { 'Content-Type': 'application/json',
+            //             'accepts': 'application/json', 
+            //             'Authorization': id},
+            // });
+            // if (!response.ok) {
+            // throw new Error('Failed to fetch logged status');
+            // }
+            // const data = await response.json();
+            // if (data.Authenticated) {
+            //     setLogged(data.Authenticated);
+            // }
+            // console.log(data);
+        // } catch (error) {
+        //     console.error('Logged error:', error);
+        //     setError('Failed to check logged status. Please try again.');
+        // }
+        // };
+        // fetchLoggedStatus();
+    // }, []);
 
     return (
         <nav className="navbar navbar-expand-lg navbar-light navbar-custom fixed-top">

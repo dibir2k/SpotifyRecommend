@@ -270,11 +270,12 @@ import time
 
 def qdrant_recommend(sp, collection_name, features, payload, limit=50):
 
-    client = QdrantClient("localhost", port=6334, timeout=10, prefer_grpc=True)
+    client = QdrantClient("qdrant", port=6334, timeout=10, prefer_grpc=True)
 
     info = client.get_collection(collection_name=collection_name)
 
-    size = info.vectors_count
+    print(info)
+    size = info.points_count
 
     vectors = features.tolist()
 

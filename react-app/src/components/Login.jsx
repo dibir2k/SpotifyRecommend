@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"
 
-const LoginPage = () => {
+const LoginPage = ({setLogged}) => {
   const navigate = useNavigate();
   useEffect(() => {
     const handleLogin = async () => {
@@ -28,11 +28,12 @@ const LoginPage = () => {
 
             // Store the token in localStorage or sessionStorage for future use
             localStorage.setItem("id", id);
+            setLogged(true);
           }
 
           // Redirect to the desired page after successful login
-          // window.location.replace("http://localhost:4173");
-          navigate('/');
+          window.location.replace("http://localhost");
+          //navigate('/');
         }
         else {
           const response = await fetch("/api/authurl");
