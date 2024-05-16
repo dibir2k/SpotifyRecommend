@@ -64,7 +64,7 @@ git lfs pull
 
         - App Name: My App
         - App Description: This is my first Spotify app
-        - Redirect URI: You won't need this parameter in this example, so use http://localhost:3000.
+        - Redirect URI: http://localhost:80/login.
         - Finally, check the Developer Terms of Service checkbox and tap on the Create button.
 
 7. After successfully creating the app, go to your app settings and copy your client id and client secret. Paste each of them in the corresponding place in the .env file.
