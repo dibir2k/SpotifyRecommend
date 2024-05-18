@@ -15,4 +15,5 @@ COPY . .
 
 EXPOSE 5000
 # Command to run the application
-CMD ["python", "app.py"]
+# CMD ["waitress-serve", "--port=8000", "wsgi:app"]
+CMD ["python", "wsgi.py"]

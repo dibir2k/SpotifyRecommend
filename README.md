@@ -67,7 +67,7 @@ git lfs pull
         - Redirect URI: http://localhost:80/login.
         - Finally, check the Developer Terms of Service checkbox and tap on the Create button.
 
-7. After successfully creating the app, go to your app settings and copy your client id and client secret. Paste each of them in the corresponding place in the .env file.
+7. After successfully creating the app, go to your app settings and copy your client id and client secret. Paste each of them in the corresponding place in the **.env** file.
 
 8. Make sure you have Docker installed. Run the following command to build and start the docker container:
 
