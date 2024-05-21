@@ -105,7 +105,7 @@ export function ListOfTracks({tracks}) {
     const filteredData = tracks.filter(
         (item) =>
           item.artist_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-          item.track_name.toString().includes(searchFilter)
+          item.track_name.toLowerCase().includes(searchFilter.toLowerCase())
     );
 
     const handleRowClick = (id) => {

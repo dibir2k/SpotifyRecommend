@@ -75,7 +75,7 @@ def init_collection(collection_name, data, sp_df):
 
 if __name__ == "__main__":
     is_qdrant_storage = glob.glob("./qdrant_storage") != []
-    if len(is_qdrant_storage):
+    if not is_qdrant_storage:
         spotify_df = read_df()
         features_df = to_features(spotify_df)
         data = get_all_features(features_df)
