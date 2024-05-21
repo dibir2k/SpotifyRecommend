@@ -15,5 +15,11 @@ COPY . .
 
 EXPOSE 5000
 # Command to run the application
+
+# Make the shell script executable
+RUN chmod +x /app/start.sh
+
+# Run the shell script
+CMD ["./start.sh"]
 # CMD ["waitress-serve", "--port=8000", "wsgi:app"]
-CMD ["python", "wsgi.py"]
+# CMD ["python", "create_collection.py && wsgi.py"]

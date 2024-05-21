@@ -1,6 +1,6 @@
 import pandas as pd
 import time
-import glob
+import os
 from qdrant_client import QdrantClient, models
 
 DIR = "./app/csvFiles"
@@ -74,8 +74,8 @@ def init_collection(collection_name, data, sp_df):
 
 
 if __name__ == "__main__":
-    is_qdrant_storage = glob.glob("./qdrant_storage") != []
-    if not is_qdrant_storage:
+    is_collection =  os.path.isdir("./qdrant_storage") and len(os.listdir("./qdrant_storage/collections")) != 0
+    if not is_collection:
         spotify_df = read_df()
         features_df = to_features(spotify_df)
         data = get_all_features(features_df)
