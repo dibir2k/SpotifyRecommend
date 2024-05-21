@@ -64,7 +64,7 @@ docker-compose up --build
 
 **Note**
 
-The first build will take some time, since the Qdrant collection has to be created and populated first. You should notice a folder "qdrant_storage" folder being created in the backend folder. 
+The first build will take some time, since the Qdrant collection has to be created and populated first. You should notice a folder "qdrant_storage" folder being created in the backend folder. After the collection is there, the app itself is run and this shouldn't take too long.
 
 
 
