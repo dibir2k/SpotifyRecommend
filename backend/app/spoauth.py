@@ -53,7 +53,8 @@ class RedisCacheHandler(CacheHandler):
             logger.warning('Error saving token to cache: ' + str(e))
 
 # Spotipy oauth
-def create_sp_oauth(r):
+def create_sp_oauth():
+    r = redis.Redis(host='redis')
     sp_oauth = SpotifyOAuth(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
@@ -61,4 +62,4 @@ def create_sp_oauth(r):
         scope="user-read-recently-played user-top-read playlist-read-private playlist-modify-private user-read-private",
         cache_handler=RedisCacheHandler(r)
     )
-    return sp_oauth
+    return r, sp_oauth

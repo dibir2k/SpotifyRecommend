@@ -19,7 +19,7 @@ The backend was built using the following libraries and services:
 * **Qdrant** vector database to store the collection of embedded vectors of each song, retrieve recommended tracks and upsert any new tracks to the database
 * **Redis** to store the token information for each user so that authenticated endpoints in the api can be accessed
 
-The vector database was first populated with roughly a million tracks from kaggle's dataset: "Spotify Million Song Dataset", available at: https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset. The database grows as the user requests suggestions for tracks not present in the vector database yet. They are first added to the collection and later used to obtain recommendations of similar tracks.
+The vector database was first populated with roughly a million tracks from kaggle's dataset: "Spotify Million Song Dataset", available at: https://www.kaggle.com/datasets/amitanshjoshi/spotify-1million-tracks. The database grows as the user requests suggestions for tracks not present in the vector database yet. They are first added to the collection and later used to obtain recommendations of similar tracks.
 
 ### Frontend
 
@@ -41,21 +41,7 @@ git clone https://github.com/dibir2k/SpotifyRecommend.git
 cd <repository-directory>
 ```
 
-3. Ensure that Git LFS is installed on the system where you've cloned the repository. 
-
-```bash
-git lfs version
-```
-
-If not, follow the steps in https://git-lfs.com.
-
-4. Pull LFS Files: Run git lfs pull to download the large files tracked by Git LFS:
-
-```bash
-git lfs pull
-```
-
-5. After running git lfs pull, check that the CSV files and the contents of the qdrant_storage folder have been downloaded and are accessible in your local copy of the repository.
+3. Unzip the csv files in the folder backend/app/csvFiles
 
 6. Login to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). If necessary, read the latest [Developer Terms of Service](https://developer.spotify.com/terms) to complete your account set up.
 
@@ -75,6 +61,10 @@ git lfs pull
 docker-compose up --build
 ```
 9. After building is done, go to http://localhost:80 to start using the app.
+
+**Note**
+
+The first build will take some time, since the Qdrant collection has to be created and populated first. You should notice a folder "qdrant_storage" folder being created in the backend folder. 
 
 
 

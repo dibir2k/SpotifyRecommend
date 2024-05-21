@@ -17,7 +17,7 @@ services:
   qdrant:
     image: qdrant/qdrant
     volumes:
-      - ./backend/app/qdrant_storage:/qdrant/storage
+      - ./backend/qdrant_storage:/qdrant/storage
 
     ports:
       - "6333:6333"

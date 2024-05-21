@@ -16,12 +16,11 @@ from . import utils
 
 main = Blueprint('main', __name__)
 
-r = redis.Redis(host='redis')
-sp_oauth = create_sp_oauth(r)
+r, sp_oauth = create_sp_oauth()
 
-@main.route("/")
-def index():
-    return main.send_static_file("index.html")
+# @main.route("/")
+# def index():
+#     return main.send_static_file("index.html")
 
 #Get auth url
 @main.route("/api/authurl")
@@ -310,7 +309,7 @@ def track_recommendations():
     sp = Spotify(auth=access_token)
     username = sp.current_user()["id"]
 
-    recommended_json = jsonify(utils.recommended(sp, limit=200, mode="in", track_name=track_name, artist_name=artist_name))
+    recommended_json = jsonify(utils.recommended(sp, limit=50, mode="in", track_name=track_name, artist_name=artist_name))
 
     return recommended_json, 200
 

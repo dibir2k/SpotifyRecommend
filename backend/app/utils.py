@@ -2,44 +2,77 @@ import pandas as pd
 from qdrant_client import QdrantClient, models
 import os
 import glob
+import time
 
-from flask import current_app
-
-client = QdrantClient("qdrant", port=6334, timeout=10, prefer_grpc=True)
-
-DIR = os.getcwd()
+DIR = os.getcwd() + "/app/csvFiles"
 
 def read_df():
-    df = pd.read_csv(DIR + "/csvFiles/spotify_data.csv")
+    df = pd.read_csv(DIR + "/spotify_data.csv")
     df.drop(df.columns[0], axis=1, inplace=True)
+    df = df.fillna("None", inplace=False)
 
     return df
 
 # clean data frame
 def clean_df(df):
-    # Adter checking, we see that the artist with missing values is called "None" and the only track without name is called "None", 
-    # so we can substitue all those values by the string "None"
-    df = df.fillna("None", inplace=False)
-
     # Drop unnecessary columns
     features_df = df.drop(["artist_name", "year", "track_id", "track_name", "duration_ms", "key", "time_signature", "popularity"], axis=1)
 
     # Use this function to search for any files which match your filename
-    files_present = glob.glob("./csvFiles/features.csv")
+    files_present = glob.glob(DIR + "/features.csv")
 
 
     # if no matching files, write to csv, if there are matching files, print statement
     if not files_present:
-        features_df.to_csv("./csvFiles/features.csv")
+        features_df.to_csv(DIR + "/features.csv")
 
     return features_df
+
+def get_features(track_df=None):
+    df = pd.read_csv(DIR + "/features.csv")
+    df.drop(df.columns[0], axis=1, inplace=True)
+
+    df_columns = list(df.columns)
+    track_df = track_df[list(df_columns)]
+    
+    len_track_df = len(track_df)
+    total_df = pd.concat([df, track_df], ignore_index=True)
+    total_df = total_df[~total_df.duplicated(keep='last')]
+
+    total_df.to_csv(DIR + "/features.csv")
+    
+    #Encode genre in one-hot sense
+    features_df = pd.get_dummies(total_df, columns=["genre"], dtype="int64").tail(len_track_df)
+
+    features_df = features_df.drop(['genre_none'], axis=1, errors='ignore')
+
+    for col in df.columns:
+        if df[col].dtype == "float64":
+            features_df[col] = (features_df[col] - df[col].mean()) / df[col].std()
+    
+
+    return features_df.to_numpy()
+
+
+
+    payload = sp_df[["artist_name", "track_name", "track_id"]].to_dict('records')
+    vectors = data.tolist()
+    size = len(vectors)
+
+    batch_size = 20000
+    index = list(range(size))
+
+    for i in range(0, size, batch_size):
+        ids = index[i:i+batch_size]
+        print(f"Upserting batch {i // batch_size + 1}/{(size // batch_size) + 1}")
+        upsert_with_retries(client, collection_name, ids, vectors[i:i+batch_size], payload[i:i+batch_size])
+
 
 def get_artist_genres(sp, artist_name):
     result = sp.search(artist_name)
     track = result['tracks']['items'][0]
     artist = sp.artist(track["artists"][0]["external_urls"]["spotify"])
     return artist["genres"]
-
 
 def get_main_genre(spotify_df, genres_list):
     all_genres_dict = spotify_df["genre"].value_counts().to_dict()
@@ -66,12 +99,11 @@ def get_track_uri(sp, track_name, artist_name):
     query = f"artist:{artist_name} track:{track_name}"
     results = sp.search(q=query, type='track')
     if results['tracks']['total'] > 0:
-        track_uri = results['tracks']['items'][0]['uri']
+        track_uri = results['tracks']['items'][0]['id']
         artist_genre = [get_artist_genres(sp, artist_name)]
         return track_uri, artist_genre
     else:
         return None
-
 
 def get_recently_played_list(sp):
     payload = []
@@ -79,10 +111,10 @@ def get_recently_played_list(sp):
     recently_items = results['items']
 
     for item in recently_items:
-        uri = item['track']['uri']
+        id = item['track']['id']
         artist_name = item['track']['artists'][0]['name']
         track_name = item['track']['name']
-        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": uri})
+        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": id})
 
     track_ids = [pld["track_id"] for pld in payload]
     images_url, albums_name, durations = get_album_images(sp, track_ids)
@@ -102,8 +134,8 @@ def get_recently_played(sp):
     recently_items = results['items']
 
     for item in recently_items:
-        uri = item['track']['uri']
-        uris.append(item['track']['uri'])
+        uri = item['track']['id']
+        uris.append(item['track']['id'])
         artist_name = item['track']['artists'][0]['name']
         track_name = item['track']['name']
         artist_genres = get_artist_genres(sp, artist_name)
@@ -122,7 +154,7 @@ def get_top_tracks_list(sp):
     for item in top_tracks_items:
         artist_name = item['artists'][0]['name']
         track_name = item['name']
-        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
+        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['id']})
 
     track_ids = [pld["track_id"] for pld in payload]
     images_url, albums_name, durations = get_album_images(sp, track_ids)
@@ -142,11 +174,11 @@ def get_top_tracks(sp):
     results = sp.current_user_top_tracks(limit=25)
     top_tracks_items = results['items']
     for item in top_tracks_items:
-        uris.append(item['uri'])
+        uris.append(item['id'])
         artist_name = item['artists'][0]['name']
         track_name = item['name']
         genres.append(get_artist_genres(sp, artist_name))
-        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['uri']})
+        payload.append({"artist_name": artist_name, "track_name": track_name, "track_id": item['id']})
 
     return uris, genres, payload
 
@@ -165,7 +197,7 @@ def get_playlist_tracks(sp, username, playlist_id):
         if is_local == True: # Filtering out any local tracks (i.e. not hosted by Spotify)
             continue
         else:
-            track_uri = item["track"]["uri"]
+            track_uri = item["track"]["id"]
             track_artist = item["track"]["artists"][0]["name"]
             track_name = item["track"]["name"]
             genres.append(get_artist_genres(sp, track_artist))
@@ -212,32 +244,6 @@ def create_df_tracks(sp, tracks, genre):
 
     return df_tracks
 
-
-def get_features(track_df=None):
-    df = pd.read_csv("./csvFiles/features.csv")
-    df.drop(df.columns[0], axis=1, inplace=True)
-
-    df_columns = list(df.columns)
-    track_df = track_df[list(df_columns)]
-    
-    len_track_df = len(track_df)
-    total_df = pd.concat([df, track_df], ignore_index=True)
-    total_df = total_df[~total_df.duplicated(keep='last')]
-
-    total_df.to_csv("./csvFiles/features.csv")
-    
-    #Encode genre in one-hot sense
-    features_df = pd.get_dummies(total_df, columns=["genre"], dtype="int64").tail(len_track_df)
-
-    features_df = features_df.drop(['genre_none'], axis=1, errors='ignore')
-
-    for col in df.columns:
-        if df[col].dtype == "float64":
-            features_df[col] = (features_df[col] - df[col].mean()) / df[col].std()
-    
-
-    return features_df.to_numpy()
-
 def ms_to_string(duration_ms):
     millis = int(duration_ms)
     seconds=(millis/1000)%60
@@ -266,39 +272,85 @@ def get_album_images(sp, track_ids):
     return images_url, albums_name, durations
 
 
-def qdrant_recommend(sp, collection_name, features, payload, limit=50):
+def batch_query_tracks(client, collection_name, payload):
+    batch_filters = [
+        models.Filter(
+            must=[
+                models.FieldCondition(key="track_id", match=models.MatchValue(value=item["track_id"])),
+                #models.FieldCondition(key="artist_name", match=models.MatchValue(value=item["artist_name"])),
+            ]
+        )
+        for item in payload
+    ]
     
-    info = client.get_collection(collection_name=collection_name)
-
-    print(info)
-    size = info.points_count
-
-    vectors = features.tolist()
-
-    vectors_to_push = []
-    payloads_to_push = []
-    ids = []
-    for i in range(len(payload)):
-        track_name = payload[i]["track_name"]
-        artist_name = payload[i]["artist_name"]
+    results = []
+    for batch_filter in batch_filters:
         search = client.scroll(
             collection_name=collection_name,
-            scroll_filter=models.Filter(
-            must=[
-                models.FieldCondition(key="track_name", match=models.MatchValue(value=track_name)),
-                models.FieldCondition(key="artist_name", match=models.MatchValue(value=artist_name)),
-            ]
-            ),
-            limit=1,
+            scroll_filter=batch_filter,
+            limit=25,
             with_payload=True,
             with_vectors=False,
-            )   
+        )
+        results.append(search)
+    return results
+
+def check_tracks(client, collection_name, payload, vectors):
+    results = batch_query_tracks(client, collection_name, payload)
+    
+    ids = []
+    vectors_to_push = []
+    payloads_to_push = []
+    
+    for i, search in enumerate(results):
         is_present = len(search[0]) != 0
         if is_present:
             ids.append(search[0][0].id)
         else:
             vectors_to_push.append(vectors[i])
             payloads_to_push.append(payload[i])
+    
+    return ids, vectors_to_push, payloads_to_push
+
+
+
+def qdrant_recommend(sp, collection_name, features, payload, limit=50):
+
+    client = QdrantClient('qdrant', port=6333, timeout=30)
+
+    info = client.get_collection(collection_name=collection_name)
+
+    size = info.points_count
+
+    vectors = features.tolist()
+
+    # Check tracks and get IDs of present tracks
+    ids, vectors_to_push, payloads_to_push = check_tracks(client, collection_name, payload, vectors)
+
+    # vectors_to_push = []
+    # payloads_to_push = []
+    # ids = []
+    # for i in range(len(payload)):
+    #     track_name = payload[i]["track_name"]
+    #     artist_name = payload[i]["artist_name"]
+    #     search = client.scroll(
+    #         collection_name=collection_name,
+    #         scroll_filter=models.Filter(
+    #         must=[
+    #             models.FieldCondition(key="track_name", match=models.MatchValue(value=track_name)),
+    #             models.FieldCondition(key="artist_name", match=models.MatchValue(value=artist_name)),
+    #         ]
+    #         ),
+    #         limit=1,
+    #         with_payload=True,
+    #         with_vectors=False,
+    #         )   
+    #     is_present = len(search[0]) != 0
+    #     if is_present:
+    #         ids.append(search[0][0].id)
+    #     else:
+    #         vectors_to_push.append(vectors[i])
+    #         payloads_to_push.append(payload[i])
 
     
     new_ids = list(range(size, size + len(vectors_to_push)))
@@ -337,8 +389,6 @@ def qdrant_recommend(sp, collection_name, features, payload, limit=50):
         result["duration"] = durations[i]
 
     return results
-
-
 
 
 def recommended(sp, limit=200, mode = "rp", track_name=None, artist_name=None, username=None):
