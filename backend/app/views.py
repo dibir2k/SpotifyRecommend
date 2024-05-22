@@ -233,24 +233,19 @@ def get_playlist_items():
 
     # Initialize Spotipy with the access token
     sp = Spotify(auth=access_token)
-    playlist_tracks = sp.playlist(playlist_id)["tracks"]["items"]
+    playlist_tracks = sp.playlist("6aMOzNW121fPTdaV2qTTmF")["tracks"]["items"]
 
     tracks = []
 
     for track in playlist_tracks:
-        track = track["track"]
-        track_name = track["name"]
-        track_id = track["id"]
-        artist_name = ""
-        n_artists = len(track["artists"])
-        for i, artist in enumerate(track["artists"]):
-            artist_name = artist_name.join(artist["name"])
-            if i < n_artists -1:
-                artist_name.join(", ")
+        track_obj = track["track"]
+        track_name = track_obj["name"]
+        track_id = track_obj["id"]
+        artist_name = ", ".join(artist["name"] for artist in track_obj["artists"])
 
-        duration = utils.ms_to_string(track["duration_ms"])
-        album_name = track["album"]["name"]
-        image = track["album"]["images"][2]["url"]
+        duration = utils.ms_to_string(track_obj["duration_ms"])
+        album_name = track_obj["album"]["name"]
+        image = track_obj["album"]["images"][2]["url"]
 
         tracks.append({"track_name":track_name, "artist_name":artist_name, "track_id":track_id, 
                       "duration":duration, "album_name":album_name, "image":image})
